@@ -1,41 +1,32 @@
 # Financial Atelier Dashboard
 
-Componentized React + Vite implementation of the portfolio dashboard.
+Pure `HTML + CSS + JavaScript` implementation of the dashboard.
 
 ## Run
 
-```bash
-npm install
-npm run dev
-```
-
-## Build
-
-```bash
-npm run build
-```
+Open [index.html](/Users/guochaojun/Desktop/Group5/frontend/index.html) directly in a browser.
 
 ## Structure
 
 ```text
 frontend/
 ├── index.html
-├── package.json
-├── vite.config.js
 ├── README.md
-└── src
-    ├── App.jsx
-    ├── main.jsx
-    ├── components
-    │   ├── dashboard
-    │   └── layout
-    ├── data
-    └── styles
+├── scripts
+│   ├── data.js
+│   └── main.js
+└── styles
+    ├── components.css
+    ├── layout.css
+    ├── main.css
+    ├── reset.css
+    └── variables.css
 ```
 
 ## Notes
 
-- `layout/` contains the global frame: top navigation and sidebar.
-- `dashboard/` contains the page sections and cards.
-- `data/` centralizes static content so the UI stays easy to replace with API data later.
-- `styles/index.css` holds the local design tokens and responsive layout rules.
+- `styles/variables.css` stores color and spacing tokens.
+- `styles/layout.css` handles app shell and responsive layout.
+- `styles/components.css` contains cards, buttons, lists, and reusable UI.
+- `scripts/data.js` stores mock data for holdings, news, and suggestions.
+- `scripts/main.js` renders repeatable content into the page.

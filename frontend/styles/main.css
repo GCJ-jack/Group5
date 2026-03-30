@@ -1,0 +1,17 @@
+.primary-cta:hover,
+.button:hover,
+.insight-card__button:hover,
+.floating-action-button:hover {
+  transform: translateY(-2px);
+}
+
+.side-nav__link:hover {
+  background: rgba(203, 213, 225, 0.42);
+  color: var(--primary);
+}
+
+.text-button:hover,
+.inline-link:hover,
+.icon-button:hover {
+  opacity: 0.72;
+}
