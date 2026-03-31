@@ -90,4 +90,45 @@ async function loadNews() {
   }
 }
 
+async function getQuote() {
+  try {
+    const response = await fetch("http://localhost:8080/api/market/trending");
+    const data = await response.json();
+
+    const list = document.getElementById("holdings-list");
+    list.innerHTML = '';
+
+    data.forEach((item) => {
+      const isPositive = (item.change ?? 0) >= 0; // ✅ 拼写修正 + 防炸
+
+      const html = `
+        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+          
+          <div>
+            <div style="font-weight:600;">${item.name}</div>
+            <div style="font-size:12px; color:gray;">
+              $${(item.currentPrice ?? 0).toFixed(2)}
+            </div>
+          </div>
+
+          <div style="text-align:right;">
+            <div style="color:${isPositive ? 'green' : 'red'};">
+              ${isPositive ? '+' : ''}${(item.percentChange ?? 0).toFixed(2)}%
+            </div>
+            <div style="font-size:12px; color:gray;">
+              ${isPositive ? '+' : ''}${(item.change ?? 0).toFixed(2)}
+            </div>
+          </div>
+
+        </div>
+      `;
+
+      list.innerHTML += html;
+    });
+
+  } catch (error) {
+    console.error("加载行情失败:", error);
+  }
+}
 document.addEventListener("DOMContentLoaded", loadNews)
+document.addEventListener("DOMContentLoaded", getQuote);
