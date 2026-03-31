@@ -1,0 +1,133 @@
+body {
+  background:
+    radial-gradient(circle at top left, rgba(165, 208, 255, 0.34), transparent 26%),
+    radial-gradient(circle at bottom right, rgba(16, 24, 40, 0.12), transparent 26%),
+    linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+  color: var(--ink);
+  font-family: "Inter", sans-serif;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.top-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  height: 4.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 0 1.5rem 0 1.75rem;
+  background: rgba(248, 250, 252, 0.82);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+.top-nav__brand-group,
+.top-nav__actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.top-nav__brand {
+  font-family: "Manrope", sans-serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+}
+
+.side-nav {
+  position: fixed;
+  top: 4.5rem;
+  left: 0;
+  bottom: 0;
+  z-index: 10;
+  width: 17rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem 1.35rem 1.5rem;
+  background: rgba(248, 250, 252, 0.78);
+  border-right: 1px solid rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+}
+
+.main-content {
+  padding: 6.5rem 1.5rem 2rem 19rem;
+}
+
+.page-wrap {
+  max-width: 88rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.dashboard-grid,
+.news-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.dashboard-grid {
+  grid-template-columns: minmax(0, 2fr) minmax(20rem, 1fr);
+}
+
+.news-grid {
+  grid-template-columns: minmax(0, 1.55fr) minmax(20rem, 1fr);
+  align-items: stretch;
+}
+
+.login-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem;
+  max-width: 76rem;
+  margin: 0 auto;
+}
+
+@media (max-width: 1100px) {
+  .main-content {
+    padding-left: 1.5rem;
+  }
+
+  .side-nav {
+    display: none;
+  }
+
+  .dashboard-grid,
+  .news-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .login-shell {
+    flex-direction: column;
+    height: auto;
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 720px) {
+  .top-nav {
+    padding-inline: 1rem;
+  }
+
+  .main-content {
+    padding: 6rem 1rem 1.5rem;
+  }
+
+  .login-shell {
+    padding: 1rem;
+  }
+}

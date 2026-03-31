@@ -1,0 +1,17 @@
+:root {
+  color-scheme: light;
+  --bg: #f4f7fb;
+  --surface: #ffffff;
+  --surface-muted: #eef2f7;
+  --surface-soft: #e6ebf2;
+  --ink: #171c1f;
+  --muted: #667085;
+  --muted-2: #8d98a7;
+  --line: rgba(15, 23, 42, 0.08);
+  --primary: #101828;
+  --accent: #d2e6fb;
+  --success: #71f0b8;
+  --success-ink: #083b28;
+  --danger: #cb3a31;
+  --shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+}

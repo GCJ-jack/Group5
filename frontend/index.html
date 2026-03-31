@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Financial Atelier | Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles/variables.css" />
+    <link rel="stylesheet" href="./styles/reset.css" />
+    <link rel="stylesheet" href="./styles/layout.css" />
+    <link rel="stylesheet" href="./styles/components.css" />
+    <link rel="stylesheet" href="./styles/main.css" />
+  </head>
+  <body>
+    <main class="login-shell">
+      <section class="login-hero" aria-label="Brand introduction">
+        <p class="login-hero__eyebrow">Financial Atelier</p>
+        <h1>Secure access for your portfolio operations.</h1>
+        <p class="login-hero__text">
+          Sign in to review balances, monitor market movement, and manage investment activity
+          from one focused workspace.
+        </p>
+
+        <div class="login-hero__metrics">
+          <article class="hero-stat">
+            <span class="hero-stat__label">Active Accounts</span>
+            <strong>12.4K</strong>
+          </article>
+          <article class="hero-stat">
+            <span class="hero-stat__label">Protected Assets</span>
+            <strong>$8.9B</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="login-panel" aria-label="Login form">
+        <div class="login-panel__header">
+          <p class="login-panel__eyebrow">Welcome back</p>
+          <h2>Log in to your account</h2>
+          <p>Use your email and password to continue.</p>
+        </div>
+
+        <form class="login-form">
+          <label class="form-field">
+            <span>Email</span>
+            <input type="email" name="email" placeholder="name@company.com" />
+          </label>
+
+          <label class="form-field">
+            <span>Password</span>
+            <input type="password" name="password" placeholder="Enter your password" />
+          </label>
+
+          <div class="login-form__meta">
+            <label class="checkbox-field">
+              <input type="checkbox" name="remember" />
+              <span>Remember me</span>
+            </label>
+
+            <a href="#" class="text-link">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="login-button">Log In</button>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>
