@@ -1,8 +1,11 @@
 package com.group5.backend.controller;
 
 import com.group5.backend.model.PortfolioItem;
+import com.group5.backend.model.PortfolioResponse;
+import com.group5.backend.model.SellRequest;
 import com.group5.backend.service.PortfolioService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,7 +18,7 @@ public class PortfolioController {
     private PortfolioService service;
 
     @GetMapping("/portfolio")
-    public List<PortfolioItem> getAll() {
+    public List<PortfolioResponse> getAll() {
         return service.getAll();
     }
 
@@ -24,13 +27,18 @@ public class PortfolioController {
         return service.add(item);
     }
 
-    @DeleteMapping("/portfolio/{id}")
-    public void delete(@PathVariable Long id) {
-        service.delete(id);
+    @PostMapping("/portfolio/sell")
+    public void sell(@RequestBody SellRequest req) {
+        service.sell(req.id, req.quantity);
     }
 
     @GetMapping("/portfolio/value")
     public double totalValue() {
         return service.getTotalValue();
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
     }
 }

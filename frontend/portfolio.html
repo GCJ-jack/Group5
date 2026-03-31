@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Management - The Atelier</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            color: #2d3748;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: white;
+            padding: 24px;
+            border-right: 1px solid #e2e8f0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: #1a202c;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .logo-text h1 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .logo-text p {
+            font-size: 11px;
+            color: #718096;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 8px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: #4a5568;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: #edf2f7;
+            color: #1a202c;
+        }
+
+        .nav-link.active {
+            background: #1a202c;
+            color: white;
+        }
+
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+        }
+
+        .upgrade-btn {
+            position: absolute;
+            bottom: 24px;
+            left: 24px;
+            right: 24px;
+            background: #1a202c;
+            color: white;
+            padding: 14px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .upgrade-btn:hover {
+            background: #2d3748;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 32px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .breadcrumb {
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a202c;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            padding: 10px 16px 10px 40px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            width: 280px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-box input:focus {
+            border-color: #4299e1;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a0aec0;
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: #edf2f7;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #4299e1;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 42px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 16px;
+        }
+
+        .stat-change {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 12px;
+            background: #c6f6d5;
+            color: #22543d;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .stat-change.positive {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .stat-row {
+            display: flex;
+            gap: 48px;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .stat-item h4 {
+            font-size: 12px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .stat-item p {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .stat-item p.positive {
+            color: #38a169;
+        }
+
+        /* Portfolio Composition */
+        .composition-card {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .composition-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .composition-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .donut-chart {
+            width: 140px;
+            height: 140px;
+            position: relative;
+        }
+
+        .donut-chart svg {
+            transform: rotate(-90deg);
+        }
+
+        .donut-chart circle {
+            fill: none;
+            stroke-width: 20;
+        }
+
+        .chart-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .chart-center .label {
+            font-size: 12px;
+            color: #718096;
+        }
+
+        .chart-center .value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .legend {
+            flex: 1;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend-label {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .legend-value {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Holdings Section */
+        .holdings-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        .holdings-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary {
+            background: #edf2f7;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-primary {
+            background: #1a202c;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2d3748;
+        }
+
+        .btn-danger {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-danger:hover {
+            background: #feb2b2;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 16px 32px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #f7fafc;
+        }
+
+        td {
+            padding: 20px 32px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        tr:hover {
+            background: #f7fafc;
+        }
+
+        .asset-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .asset-icon {
+            width: 40px;
+            height: 40px;
+            background: #edf2f7;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .asset-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .asset-symbol {
+            font-size: 12px;
+            color: #718096;
+            background: #edf2f7;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-green {
+            color: #38a169;
+        }
+
+        /* Add Asset Form */
+        .add-asset-card {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 32px;
+        }
+
+        .form-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .form-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: #4299e1;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            background: white;
+            cursor: pointer;
+        }
+
+        .btn-block {
+            width: 100%;
+            padding: 14px;
+            margin-top: 8px;
+        }
+
+        .btn-cancel {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            background: transparent;
+            border: none;
+            color: #718096;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-cancel:hover {
+            color: #4a5568;
+        }
+
+        .ai-notice {
+            margin-top: 24px;
+            padding: 16px;
+            background: #f7fafc;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #4a5568;
+            line-height: 1.6;
+        }
+
+        .ai-notice::before {
+            content: "✨ ";
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .stats-grid,
+            .holdings-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .add-asset-card {
+                position: static;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* Delete confirmation modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .modal-text {
+            color: #718096;
+            margin-bottom: 24px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-actions .btn {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">A</div>
+                <div class="logo-text">
+                    <h1>The Atelier</h1>
+                    <p>WEALTH MANAGEMENT</p>
+                </div>
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a class="nav-link">
+                        <span class="nav-icon">📊</span>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active">
+                        <span class="nav-icon">💼</span>
+                        <span>Portfolio</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link">
+                        <span class="nav-icon">📰</span>
+                        <span>News</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link">
+                        <span class="nav-icon">📈</span>
+                        <span>Analysis</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link">
+                        <span class="nav-icon">⚙️</span>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="upgrade-btn">
+                Upgrade to Pro ⚡
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <div>
+                    <div class="breadcrumb">Dashboard › Portfolio</div>
+                    <h1 class="page-title">Active Holdings</h1>
+                </div>
+                
+                <div class="header-actions">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" placeholder="Search assets..." id="searchInput">
+                    </div>
+                    <button class="icon-btn">🔔</button>
+                    <button class="icon-btn">❓</button>
+                    <div class="user-avatar">JD</div>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Balance</div>
+                    <div class="stat-value" id="totalBalance">$1,482,904.52</div>
+                    <span class="stat-change positive">↑ +4.25%</span>
+                    
+                    <div class="stat-row">
+                        <div class="stat-item">
+                            <h4>Total P/L</h4>
+                            <p class="positive" id="totalPL">+$342,190.12</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4>Day Return</h4>
+                            <p class="positive" id="dayReturn">+$12,402.00</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4>Risk Level</h4>
+                            <p>Moderate</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="composition-card">
+                    <div class="composition-header">
+                        <div class="composition-title">Portfolio Composition</div>
+                        <span style="cursor: pointer;">ℹ️</span>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <div class="donut-chart">
+                            <svg width="140" height="140">
+                                <circle cx="70" cy="70" r="50" stroke="#e2e8f0" stroke-dasharray="314" stroke-dashoffset="0"/>
+                                <circle cx="70" cy="70" r="50" stroke="#1a202c" stroke-dasharray="314" stroke-dashoffset="119.32"/>
+                                <circle cx="70" cy="70" r="50" stroke="#4299e1" stroke-dasharray="314" stroke-dashoffset="251.2"/>
+                            </svg>
+                            <div class="chart-center">
+                                <div class="label">Assets</div>
+                                <div class="value" id="totalAssets">4</div>
+                            </div>
+                        </div>
+                        
+                        <div class="legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #1a202c;"></div>
+                                <div class="legend-label">Equities</div>
+                                <div class="legend-value" id="equitiesPercent">62%</div>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #4299e1;"></div>
+                                <div class="legend-label">Fixed Income</div>
+                                <div class="legend-value" id="fixedIncomePercent">22%</div>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #e2e8f0;"></div>
+                                <div class="legend-label">Cash</div>
+                                <div class="legend-value" id="cashPercent">16%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Holdings Section -->
+            <div class="holdings-section">
+                <div class="holdings-card">
+                    <div class="card-header">
+                        <h2 class="card-title">Detailed Holdings</h2>
+                        <div class="card-actions">
+                            <button class="btn btn-secondary" onclick="exportCSV()">Export CSV</button>
+                            <button class="btn btn-secondary">Filters</button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Asset Name</th>
+                                    <th>Symbol</th>
+                                    <th>Holdings</th>
+                                    <th class="text-right">Price</th>
+                                    <th class="text-right">Market Value</th>
+                                    <th class="text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="holdingsTable">
+                                <!-- Holdings will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="empty-state" id="emptyState" style="display: none;">
+                        <div class="empty-state-icon">📭</div>
+                        <p>No holdings yet. Add your first asset!</p>
+                    </div>
+                </div>
+
+                <!-- Add Asset Form -->
+                <div class="add-asset-card">
+                    <div class="form-header">
+                        <div style="width: 40px; height: 40px; background: #1a202c; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">+</div>
+                        <h2 class="form-title">Add New Asset</h2>
+                    </div>
+                    
+                    <form id="addAssetForm">
+                        <div class="form-group">
+                            <label class="form-label">Asset Name</label>
+                            <input type="text" class="form-input" placeholder="e.g. Amazon.com Inc." id="assetName" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Symbol</label>
+                                <input type="text" class="form-input" placeholder="AMZN" id="assetSymbol" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" class="form-input" placeholder="0.00" id="assetQuantity" step="0.01" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Price ($)</label>
+                                <input type="number" class="form-input" placeholder="0.00" id="assetPrice" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Asset Type</label>
+                                <select class="form-select" id="assetType">
+                                    <option value="Equities">Equities</option>
+                                    <option value="Fixed Income">Fixed Income</option>
+                                    <option value="Cash">Cash</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-block">Add to Portfolio</button>
+                        <button type="button" class="btn-cancel" onclick="resetForm()">Cancel</button>
+                    </form>
+                    
+                    <div class="ai-notice">
+                        Our AI engine will automatically fetch the latest market price and technical data for this asset once added.
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal">
+            <div class="modal-title">Delete Asset</div>
+            <div class="modal-text">Are you sure you want to delete this asset from your portfolio? This action cannot be undone.</div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initial holdings data
+        let holdings = [
+            { id: 1, name: 'Apple Inc.', symbol: 'AAPL', quantity: 1240, price: 184.22, type: 'Equities' },
+            { id: 2, name: 'NVIDIA Corp.', symbol: 'NVDA', quantity: 450, price: 875.28, type: 'Equities' },
+            { id: 3, name: 'Microsoft Corp.', symbol: 'MSFT', quantity: 800, price: 412.55, type: 'Equities' },
+            { id: 4, name: 'Tesla, Inc.', symbol: 'TSLA', quantity: 600, price: 175.40, type: 'Equities' }
+        ];
+
+        let deleteId = null;
+
+        // Render holdings table
+        function renderHoldings() {
+            const tbody = document.getElementById('holdingsTable');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (holdings.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                updateStats();
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            tbody.innerHTML = holdings.map(holding => {
+                const marketValue = holding.quantity * holding.price;
+                return `
+                    <tr class="fade-in">
+                        <td>
+                            <div class="asset-info">
+                                <div class="asset-icon">${holding.symbol[0]}</div>
+                                <div>
+                                    <div class="asset-name">${holding.name}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="asset-symbol">${holding.symbol}</span></td>
+                        <td>${holding.quantity.toLocaleString()} Shares</td>
+                        <td class="text-right">$${holding.price.toFixed(2)}</td>
+                        <td class="text-right">$${marketValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        <td class="text-right">
+                            <button class="btn btn-danger" onclick="openDeleteModal(${holding.id})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            updateStats();
+        }
+
+        // Update statistics
+        function updateStats() {
+            const totalValue = holdings.reduce((sum, h) => sum + (h.quantity * h.price), 0);
+            const totalAssets = holdings.length;
+            
+            document.getElementById('totalBalance').textContent = '$' + totalValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('totalAssets').textContent = totalAssets;
+            
+            // Calculate composition
+            const equitiesValue = holdings.filter(h => h.type === 'Equities').reduce((sum, h) => sum + (h.quantity * h.price), 0);
+            const fixedIncomeValue = holdings.filter(h => h.type === 'Fixed Income').reduce((sum, h) => sum + (h.quantity * h.price), 0);
+            const cashValue = holdings.filter(h => h.type === 'Cash').reduce((sum, h) => sum + (h.quantity * h.price), 0);
+            
+            const equitiesPercent = totalValue > 0 ? Math.round((equitiesValue / totalValue) * 100) : 0;
+            const fixedIncomePercent = totalValue > 0 ? Math.round((fixedIncomeValue / totalValue) * 100) : 0;
+            const cashPercent = totalValue > 0 ? Math.round((cashValue / totalValue) * 100) : 0;
+            
+            document.getElementById('equitiesPercent').textContent = equitiesPercent + '%';
+            document.getElementById('fixedIncomePercent').textContent = fixedIncomePercent + '%';
+            document.getElementById('cashPercent').textContent = cashPercent + '%';
+        }
+
+        // Add new asset
+        document.getElementById('addAssetForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const newAsset = {
+                id: Date.now(),
+                name: document.getElementById('assetName').value,
+                symbol: document.getElementById('assetSymbol').value.toUpperCase(),
+                quantity: parseFloat(document.getElementById('assetQuantity').value),
+                price: parseFloat(document.getElementById('assetPrice').value),
+                type: document.getElementById('assetType').value
+            };
+            
+            holdings.push(newAsset);
+            renderHoldings();
+            resetForm();
+            
+            // Show success message
+            alert('Asset added successfully!');
+        });
+
+        // Reset form
+        function resetForm() {
+            document.getElementById('addAssetForm').reset();
+        }
+
+        // Delete modal functions
+        function openDeleteModal(id) {
+            deleteId = id;
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+            deleteId = null;
+        }
+
+        function confirmDelete() {
+            if (deleteId) {
+                holdings = holdings.filter(h => h.id !== deleteId);
+                renderHoldings();
+                closeModal();
+            }
+        }
+
+        // Export to CSV
+        function exportCSV() {
+            const headers = ['Asset Name', 'Symbol', 'Quantity', 'Price', 'Market Value', 'Type'];
+            const rows = holdings.map(h => [
+                h.name,
+                h.symbol,
+                h.quantity,
+                h.price,
+                (h.quantity * h.price).toFixed(2),
+                h.type
+            ]);
+            
+            const csvContent = [headers, ...rows]
+                .map(row => row.join(','))
+                .join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'holdings.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#holdingsTable tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Close modal on outside click
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Initial render
+        renderHoldings();
+    </script>
+</body>
+</html>

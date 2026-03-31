@@ -1,16 +1,8 @@
 package com.group5.backend.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import lombok.*;
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
-//@Builder
-//@Getter
-//@Setter
-//@AllArgsConstructor
-//@NoArgsConstructor
 @Entity
 public class PortfolioItem {
 
@@ -20,21 +12,42 @@ public class PortfolioItem {
 
     private String ticker;
     private int quantity;
+    private LocalDateTime time;
 
-    public PortfolioItem() {}
+    public PortfolioItem() {
+    }
 
     public PortfolioItem(String ticker, int quantity) {
         this.ticker = ticker;
         this.quantity = quantity;
+        this.time = LocalDateTime.now();
     }
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getTicker() { return ticker; }
+    public String getTicker() {
+        return ticker;
+    }
 
-    public void setTicker(String ticker) { this.ticker = ticker; }
+    public void setTicker(String ticker) {
+        this.ticker = ticker;
+    }
 
-    public int getQuantity() { return quantity; }
+    public int getQuantity() {
+        return quantity;
+    }
 
-    public void setQuantity(int quantity) { this.quantity = quantity; }
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public LocalDateTime getTime() {
+        return time;
+    }
+
+    public void setTime(LocalDateTime time) {
+        this.time = time;
+    }
 }
