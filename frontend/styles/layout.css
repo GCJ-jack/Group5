@@ -91,9 +91,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2rem;
   padding: 2rem;
-  max-width: 76rem;
   margin: 0 auto;
 }
 
@@ -112,8 +110,6 @@ body {
   }
 
   .login-shell {
-    flex-direction: column;
-    height: auto;
     padding: 1.5rem;
   }
 }
