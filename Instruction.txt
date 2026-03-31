@@ -1,0 +1,106 @@
+安装与使用指南
+================================================================================
+1. 环境要求
+操作系统：Windows 10/11, macOS, 或 Linux
+内存：至少 8GB RAM（推荐 16GB）
+磁盘空间：至少 10GB 可用空间
+网络：稳定的互联网连接（首次安装需要）
+================================================================================
+2. 安装步骤
+2.1 安装 Node.js
+Windows/macOS:
+访问 https://nodejs.org/
+下载 LTS 版本（推荐）
+运行安装程序，按照提示安装
+验证安装：
+node --version
+npm --version
+Linux (Ubuntu/Debian):
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+sudo apt-get install -y nodejs
+2.2 安装 Ollama
+Windows:
+访问 https://ollama.ai/
+下载 Windows 安装程序
+运行安装程序
+验证安装：ollama --version
+macOS:
+curl -fsSL https://ollama.com/install.sh | sh
+Linux:
+curl -fsSL https://ollama.com/install.sh | sh
+2.3 下载 GPT 模型
+拉取模型（首次需要下载，约需 5-10 分钟）：
+ollama pull gpt-oss:120b-cloud
+或者使用其他可用模型：
+ollama pull llama2 # Meta 的 Llama 2 模型
+ollama pull mistral # Mistral 模型
+ollama pull codellama # Code Llama 模型
+验证模型已下载：
+ollama list
+测试模型是否正常工作：
+ollama run gpt-oss:120b-cloud "你好"
+================================================================================
+3. 项目配置
+3.1 克隆项目
+git clone <your-repository-url>
+cd The-Atelier-AI
+3.2 安装后端依赖
+cd server
+npm install
+这会安装以下依赖：
+express
+cors
+openai
+3.3 检查配置文件
+确保 server/server.js 中的配置正确：
+const client = new OpenAI({
+baseURL: "http://localhost:11434/v1",
+apiKey: "ollama",
+});
+重要：确保 Ollama 服务正在运行（默认端口 11434）
+================================================================================
+4. 启动应用
+4.1 启动 Ollama 服务
+Windows:
+Ollama 会自动在后台运行
+检查是否运行：打开任务管理器，查看是否有 Ollama 进程
+macOS/Linux:
+ollama serve
+或者在新终端窗口运行：
+ollama list # 这会自动启动服务
+4.2 启动后端服务器
+打开新终端：
+cd server
+npm start
+您应该看到：
+Server running on http://localhost:3000
+保持此终端窗口打开
+4.3 打开前端
+方法 1: 直接打开 HTML 文件
+在文件浏览器中双击 index.html
+或者右键 → 用浏览器打开
+方法 2: 使用本地服务器（推荐）
+安装 Live Server 扩展（如果使用 VS Code）：
+打开 VS Code
+安装 "Live Server" 扩展
+右键 index.html → "Open with Live Server"
+方法 3: 使用 Python 简易服务器
+在项目根目录：
+python -m http.server 8080
+然后在浏览器访问 http://localhost:8080
+================================================================================
+5. 使用说明
+5.1 基本对话
+在输入框中输入您的问题
+按 Enter 发送（或点击发送按钮）
+等待 AI 回复
+示例问题：
+"我的投资组合风险如何？"
+"2022 年的中国人口是多少？"
+"分析一下科技股的投资前景"
+5.2 分析投资组合
+点击绿色按钮 "分析最近的投资"，获取详细的投资组合分析报告。
+5.3 新建对话
+点击左侧边栏的 "新建对话" 按钮，开始新的对话。
+5.4 查看历史对话
+左侧边栏显示最近的对话历史，点击可查看。
