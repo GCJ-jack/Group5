@@ -45,15 +45,14 @@
           <p>Use your email and password to continue.</p>
         </div>
 
-        <form class="login-form">
+        <form class="login-form" id="loginForm">
           <label class="form-field">
             <span>Email</span>
-            <input type="email" name="email" placeholder="name@company.com" />
+              <input id="email" type="email" name="email" placeholder="name@company.com" />
           </label>
-
           <label class="form-field">
             <span>Password</span>
-            <input type="password" name="password" placeholder="Enter your password" />
+              <input id="password" type="password" name="password" placeholder="Enter your password" />
           </label>
 
           <div class="login-form__meta">
@@ -69,5 +68,6 @@
         </form>
       </section>
     </main>
+    <script src="scripts/login.js" defer></script>
   </body>
 </html>
