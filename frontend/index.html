@@ -3,15 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Financial Atelier | Portfolio Manager</title>
+    <title>Financial Atelier | Login</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles/variables.css" />
@@ -21,199 +17,57 @@
     <link rel="stylesheet" href="./styles/main.css" />
   </head>
   <body>
-    <div class="app-shell">
-      <header class="top-nav">
-        <div class="top-nav__brand-group">
-          <span class="top-nav__brand">Financial Atelier</span>
+    <main class="login-shell">
+      <section class="login-hero" aria-label="Brand introduction">
+        <p class="login-hero__eyebrow">Financial Atelier</p>
+        <h1>Secure access for your portfolio operations.</h1>
+        <p class="login-hero__text">
+          Sign in to review balances, monitor market movement, and manage investment activity
+          from one focused workspace.
+        </p>
 
-          <label class="search-field" aria-label="Search markets, assets, or news">
-            <span class="material-symbols-outlined search-field__icon">search</span>
-            <input
-              type="text"
-              placeholder="Search markets, assets, or news..."
-              class="search-field__input"
-            />
+        <div class="login-hero__metrics">
+          <article class="hero-stat">
+            <span class="hero-stat__label">Active Accounts</span>
+            <strong>12.4K</strong>
+          </article>
+          <article class="hero-stat">
+            <span class="hero-stat__label">Protected Assets</span>
+            <strong>$8.9B</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="login-panel" aria-label="Login form">
+        <div class="login-panel__header">
+          <p class="login-panel__eyebrow">Welcome back</p>
+          <h2>Log in to your account</h2>
+          <p>Use your email and password to continue.</p>
+        </div>
+
+        <form class="login-form">
+          <label class="form-field">
+            <span>Email</span>
+            <input type="email" name="email" placeholder="name@company.com" />
           </label>
-        </div>
 
-        <div class="top-nav__actions">
-          <button class="icon-button icon-button--notification" aria-label="Notifications">
-            <span class="material-symbols-outlined">notifications</span>
-          </button>
-          <button class="icon-button" aria-label="Wallet">
-            <span class="material-symbols-outlined">account_balance_wallet</span>
-          </button>
+          <label class="form-field">
+            <span>Password</span>
+            <input type="password" name="password" placeholder="Enter your password" />
+          </label>
 
-          <div class="profile-avatar">
-            <img
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsf8hdnDwPXCTQhU11zxDD04Mr9j8iOm2WOeiOjETjlZ0qv0ou2gsxra3Bxck5UeotfA7J4RbtcxC0KNwCXupsECv39-E-FQjOvc9ZOgCD9u9FpGgpj8gTWkVNL827zBUC5BHOmuo4A7B3MwOfrjkBtCtV96TeP10z4gHMWqK6_R666WtJcPjFf6zNVEmM9JRFugb3zmIw3eoAP7h7kXBB6d4MWbhx53IZa68ry2jGXPBGbdWJCvd1bjbAm3qW1fc0oxMwwx2Vj04"
-              alt="User profile"
-            />
+          <div class="login-form__meta">
+            <label class="checkbox-field">
+              <input type="checkbox" name="remember" />
+              <span>Remember me</span>
+            </label>
+
+            <a href="#" class="text-link">Forgot password?</a>
           </div>
-        </div>
-      </header>
 
-      <aside class="side-nav">
-        <div class="side-nav__brand-card">
-          <div class="side-nav__brand-icon">
-            <span class="material-symbols-outlined">architecture</span>
-          </div>
-          <div>
-            <h2>The Atelier</h2>
-            <p>Wealth Management</p>
-          </div>
-        </div>
-
-        <nav class="side-nav__menu" aria-label="Primary">
-          <a href="#" class="side-nav__link side-nav__link--active">
-            <span class="material-symbols-outlined">dashboard</span>
-            <span>Dashboard</span>
-          </a>
-          <a href="#" class="side-nav__link">
-            <span class="material-symbols-outlined">pie_chart</span>
-            <span>Portfolio</span>
-          </a>
-          <a href="#" class="side-nav__link">
-            <span class="material-symbols-outlined">article</span>
-            <span>News</span>
-          </a>
-          <a href="#" class="side-nav__link">
-            <span class="material-symbols-outlined">monitoring</span>
-            <span>Analysis</span>
-          </a>
-          <a href="#" class="side-nav__link">
-            <span class="material-symbols-outlined">settings</span>
-            <span>Settings</span>
-          </a>
-        </nav>
-
-        <button class="primary-cta">
-          <span class="material-symbols-outlined">add</span>
-          <span>New Investment</span>
-        </button>
-      </aside>
-
-      <main class="main-content">
-        <div class="page-wrap">
-          <section class="hero-section">
-            <div>
-              <p class="eyebrow">Portfolio Overview</p>
-              <h1 class="hero-section__value">$1,482,904.52</h1>
-
-              <div class="hero-section__meta">
-                <div class="pill pill--success">
-                  <span class="material-symbols-outlined">trending_up</span>
-                  <span>+4.25% ($62.4k) Today</span>
-                </div>
-                <span class="hero-section__subtle">Monthly: +12.8%</span>
-              </div>
-            </div>
-
-            <div class="hero-section__actions">
-              <button class="button button--primary">
-                <span class="material-symbols-outlined">swap_vert</span>
-                <span>Buy/Sell</span>
-              </button>
-              <button class="button button--secondary">
-                <span class="material-symbols-outlined">account_balance</span>
-                <span>Deposit</span>
-              </button>
-              <button class="button button--surface">
-                <span class="material-symbols-outlined">payments</span>
-                <span>Withdraw</span>
-              </button>
-            </div>
-          </section>
-
-          <section class="dashboard-grid">
-            <article class="card card--performance">
-              <div class="card__header">
-                <h3>Portfolio Performance</h3>
-
-                <div class="segmented-control" id="performance-filters"></div>
-              </div>
-
-              <div class="chart-shell">
-                <div class="chart-shell__glow"></div>
-
-                <svg viewBox="0 0 800 200" preserveAspectRatio="none" class="chart-shell__svg">
-                  <defs>
-                    <linearGradient id="performanceGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stop-color="rgba(17, 24, 39, 0.25)"></stop>
-                      <stop offset="100%" stop-color="rgba(17, 24, 39, 0)"></stop>
-                    </linearGradient>
-                  </defs>
-
-                  <path
-                    d="M0,180 C100,160 150,190 250,140 C350,90 450,120 550,60 C650,0 750,40 800,20"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="4"
-                    stroke-linecap="round"
-                  ></path>
-                  <path
-                    d="M0,180 C100,160 150,190 250,140 C350,90 450,120 550,60 C650,0 750,40 800,20 L800,200 L0,200 Z"
-                    fill="url(#performanceGradient)"
-                  ></path>
-                </svg>
-              </div>
-            </article>
-
-            <article class="card card--holdings">
-              <div class="card__header">
-                <h3>Top Holdings</h3>
-              </div>
-
-              <div class="holdings-list" id="holdings-list"></div>
-
-              <button class="text-button">View All Assets</button>
-            </article>
-          </section>
-
-          <section class="news-grid">
-            <section class="news-panel">
-              <div class="section-heading">
-                <div>
-                  <h2>Market News</h2>
-                  <p>Analysis tailored to your portfolio risk profile.</p>
-                </div>
-
-                <button class="inline-link">
-                  <span>Explore Feed</span>
-                  <span class="material-symbols-outlined">arrow_forward</span>
-                </button>
-              </div>
-
-              <div class="news-list" id="news-list"></div>
-            </section>
-
-            <aside class="insight-card">
-              <div class="insight-card__orb"></div>
-
-              <div class="insight-card__content">
-                <div>
-                  <h3>Investment Insight</h3>
-                  <p class="insight-card__description">
-                    Your portfolio is currently 15% overweight in Technology. Consider
-                    diversifying into defensive sectors like Utilities to reduce volatility.
-                  </p>
-
-                  <div class="insight-card__checks" id="suggestion-list"></div>
-                </div>
-
-                <button class="insight-card__button">Apply Optimization</button>
-              </div>
-            </aside>
-          </section>
-        </div>
-      </main>
-
-      <button class="floating-action-button" aria-label="Add investment">
-        <span class="material-symbols-outlined">add</span>
-      </button>
-    </div>
-
-    <script src="./scripts/data.js"></script>
-    <script src="./scripts/main.js"></script>
+          <button type="submit" class="login-button">Log In</button>
+        </form>
+      </section>
+    </main>
   </body>
 </html>

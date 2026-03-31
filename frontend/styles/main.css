@@ -1,3 +1,4 @@
+.login-button:hover,
 .primary-cta:hover,
 .button:hover,
 .insight-card__button:hover,
@@ -5,11 +6,16 @@
   transform: translateY(-2px);
 }
 
+.login-button:hover {
+  opacity: 0.94;
+}
+
 .side-nav__link:hover {
   background: rgba(203, 213, 225, 0.42);
   color: var(--primary);
 }
 
+.text-link:hover,
 .text-button:hover,
 .inline-link:hover,
 .icon-button:hover {
