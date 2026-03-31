@@ -48,6 +48,54 @@ public class FinnhubService {
                 .sorted(Comparator.comparingLong(FinnhubNewsItem::id).reversed())
                 .toList();
     }
+    public double getPrice(String ticker) {
+        validateToken();
+
+        try {
+            var response = finnhubRestClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/quote")
+                            .queryParam("symbol", ticker)
+                            .queryParam("token", apiToken)
+                            .build())
+                    .retrieve()
+                    .body(String.class);
+
+            org.json.JSONObject json = new org.json.JSONObject(response);
+
+            return json.getDouble("c"); // current price
+
+        } catch (Exception e) {
+            System.out.println("Finnhub price error: " + ticker);
+            e.printStackTrace();
+            return 0.0;
+        }
+    }
+    public String getName(String ticker) {
+        validateToken();
+
+        try {
+            var response = finnhubRestClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/stock/profile2")
+                            .queryParam("symbol", ticker)
+                            .queryParam("token", apiToken)
+                            .build())
+                    .retrieve()
+                    .body(String.class);
+
+            org.json.JSONObject json = new org.json.JSONObject(response);
+
+            return json.optString("name", ticker);
+
+        } catch (Exception e) {
+            return ticker;
+        }
+    }
+    public String getType(String ticker) {
+        if (ticker.endsWith("-USD")) return "Crypto";
+        return "Equity";
+    }
 
     private void validateToken() {
         if (!StringUtils.hasText(apiToken)) {

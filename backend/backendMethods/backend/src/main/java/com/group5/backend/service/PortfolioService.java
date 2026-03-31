@@ -16,21 +16,18 @@ public class PortfolioService {
     private PortfolioRepository repository;
 
     @Autowired
-    private PriceService priceService;
-
-    @Autowired
-    private AssetInfoService assetInfoService;
+    private FinnhubService finnhubService; // ✅ 改这里
 
     public List<PortfolioResponse> getAll() {
         return repository.findAll().stream()
                 .map(item -> {
-                    double price = priceService.getPrice(item.getTicker());
+                    double price = finnhubService.getPrice(item.getTicker());
 
                     return new PortfolioResponse(
                             item.getId(),
-                            assetInfoService.getName(item.getTicker()),
+                            finnhubService.getName(item.getTicker()),   // ✅
                             item.getTicker(),
-                            assetInfoService.getType(item.getTicker()),
+                            finnhubService.getType(item.getTicker()),   // ✅
                             item.getQuantity(),
                             price,
                             item.getTime()
@@ -79,7 +76,7 @@ public class PortfolioService {
 
     public double getTotalValue() {
         return repository.findAll().stream()
-                .mapToDouble(item -> item.getQuantity() * priceService.getPrice(item.getTicker()))
+                .mapToDouble(item -> item.getQuantity() * finnhubService.getPrice(item.getTicker())) // ✅
                 .sum();
     }
 }
