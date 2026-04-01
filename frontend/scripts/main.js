@@ -44,6 +44,7 @@ function renderHoldings() {
 
 function renderNews() {
   newsRoot.innerHTML = marketNews
+    .slice(0, 10)
     .map(
       (item) => `
         <article class="news-card">

@@ -49,3 +49,86 @@ window.dashboardData = {
     "Dividend alert: AAPL payout in 3 days",
   ],
 };
+
+
+async function loadNews() {
+  try{
+    const response = await fetch("http://localhost:8080/api/market/news")
+
+    const data = await response.json();
+
+    const newsList = document.getElementById("news-list");
+
+    //清空newslist
+    newsList.innerHTML = '';
+
+    data.slice(0, 10).forEach((item) => {
+      const newsItem =  `<div class="news-item" style="display:flex; gap:12px; margin-bottom:16px;">
+
+        <img src="${item.image}"
+             style="width:100px; height:70px; object-fit:cover; border-radius:8px;" />
+
+        <div>
+          <a href="${item.url}" target="_blank"
+             style="font-weight:600; text-decoration:none; color:#111;">
+            ${item.headline}
+          </a>
+
+          <p style="font-size:12px; color:gray; margin:4px 0;">
+            ${item.source} · ${new Date(item.datetime * 1000).toLocaleString()}
+          </p>
+
+          <p style="font-size:13px;">
+            ${item.summary}
+          </p>
+        </div>
+      </div>`;
+      newsList.innerHTML += newsItem;
+    });
+  } catch (error) {
+    console.error("加载新闻失败:", error);
+  }
+}
+
+async function getQuote() {
+  try {
+    const response = await fetch("http://localhost:8080/api/market/trending");
+    const data = await response.json();
+
+    const list = document.getElementById("holdings-list");
+    list.innerHTML = '';
+
+    data.forEach((item) => {
+      const isPositive = (item.change ?? 0) >= 0; // ✅ 拼写修正 + 防炸
+
+      const html = `
+        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+          
+          <div>
+            <div style="font-weight:600;">${item.name}</div>
+            <div style="font-size:12px; color:gray;">
+              $${(item.currentPrice ?? 0).toFixed(2)}
+            </div>
+          </div>
+
+          <div style="text-align:right;">
+            <div style="color:${isPositive ? 'green' : 'red'};">
+              ${isPositive ? '+' : ''}${(item.percentChange ?? 0).toFixed(2)}%
+            </div>
+            <div style="font-size:12px; color:gray;">
+              ${isPositive ? '+' : ''}${(item.change ?? 0).toFixed(2)}
+            </div>
+          </div>
+
+        </div>
+      `;
+
+      list.innerHTML += html;
+    });
+
+  } catch (error) {
+    console.error("加载行情失败:", error);
+  }
+}
+document.addEventListener("DOMContentLoaded", loadNews)
+document.addEventListener("DOMContentLoaded", getQuote);

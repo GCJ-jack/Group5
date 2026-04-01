@@ -3,7 +3,6 @@
   line-height: 1;
 }
 
-.login-hero,
 .login-panel {
   position: relative;
   overflow: hidden;
@@ -11,84 +10,10 @@
   box-shadow: var(--shadow);
 }
 
-.login-hero {
-  flex: 1.05;
-  min-height: 42rem;
-  border-radius: 2rem;
-  padding: 3rem;
-  background:
-    radial-gradient(circle at top right, rgba(113, 240, 184, 0.18), transparent 26%),
-    linear-gradient(160deg, #0f1728 0%, #16243d 56%, #243552 100%);
-  color: #f8fbff;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.login-hero__eyebrow,
-.login-panel__eyebrow {
-  margin: 0 0 0.8rem;
-  font-size: 0.76rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.login-hero__eyebrow {
-  color: rgba(226, 232, 240, 0.72);
-}
-
-.login-hero h1,
 .login-panel h2 {
   margin: 0;
   font-family: "Manrope", sans-serif;
   letter-spacing: -0.05em;
-}
-
-.login-hero h1 {
-  max-width: 30rem;
-  font-size: clamp(2.8rem, 5vw, 4.8rem);
-  line-height: 0.94;
-}
-
-.login-hero__text,
-.login-panel__header p {
-  margin: 1.2rem 0 0;
-  max-width: 28rem;
-  line-height: 1.75;
-}
-
-.login-hero__text {
-  color: rgba(226, 232, 240, 0.76);
-}
-
-.login-hero__metrics {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-}
-
-.hero-stat {
-  padding: 1.3rem 1.4rem;
-  border-radius: 1.4rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(10px);
-}
-
-.hero-stat__label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: rgba(226, 232, 240, 0.72);
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-}
-
-.hero-stat strong {
-  font-family: "Manrope", sans-serif;
-  font-size: 1.7rem;
-  letter-spacing: -0.04em;
 }
 
 .login-panel {
@@ -102,19 +27,16 @@
   justify-content: center;
 }
 
-.login-panel__eyebrow {
-  color: var(--muted-2);
-}
-
 .login-panel h2 {
-  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  text-align: center;
 }
 
 .login-form {
   display: flex;
   flex-direction: column;
   gap: 1.1rem;
-  margin-top: 2rem;
+  margin-top: 1.75rem;
 }
 
 .form-field {
@@ -707,17 +629,8 @@
 }
 
 @media (max-width: 720px) {
-  .login-hero,
   .login-panel {
     padding: 1.5rem;
-  }
-
-  .login-hero {
-    min-height: 28rem;
-  }
-
-  .login-hero__metrics {
-    grid-template-columns: 1fr;
   }
 
   .login-panel {
