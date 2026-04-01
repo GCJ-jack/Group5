@@ -11,6 +11,7 @@ public class PortfolioItem {
     private Long id;
 
     private String ticker;
+    private String type;
     private int quantity;
     private LocalDateTime time;
 
@@ -33,6 +34,14 @@ public class PortfolioItem {
 
     public void setTicker(String ticker) {
         this.ticker = ticker;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public int getQuantity() {

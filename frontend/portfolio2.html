@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <meta charset="UTF-8">
     <title>Portfolio</title>
     <style>
@@ -13,6 +14,52 @@
         .container {
             display: flex;
             min-height: 100vh;
+        }
+
+        .chart-card {
+            padding: 20px;
+        }
+
+        .chart-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 24px;
+        }
+
+        .chart-box {
+            width: 180px;
+            height: 180px;
+        }
+
+        .legend {
+            min-width: 180px;
+            padding-right: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .legend-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 90px;
+        }
+
+        .legend-color {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .chart-spacer {
+            flex: 1;
         }
 
         .sidebar {
@@ -167,10 +214,36 @@
         </div>
 
         <div class="card">
+            <div class="card chart-card">
+                <h3>Portfolio Composition</h3>
+
+                <div class="chart-wrapper">
+                    <div class="legend" id="legend"></div>
+
+                    <div class="chart-box">
+                        <canvas id="chart"></canvas>
+                    </div>
+
+                    <div class="chart-spacer" aria-hidden="true"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
             <h3>Add Asset</h3>
             <div class="form-row">
-                <input id="ticker" class="form-input" type="text" placeholder="Ticker (e.g. AAPL)">
+                <input id="ticker" class="form-input" type="text" 
+                placeholder="Ticker (e.g. AAPL)" oninput="searchTicker()" autocomplete="off">
+                <div id="suggestions" style="background:white;border:1px solid #ccc;width:220px;"></div>
                 <input id="quantity" class="form-input" type="number" placeholder="Quantity" min="1" step="1">
+                <select id="type" class="form-input">
+                    <option value="">Select type</option>
+                    <option value="Equity">Equity</option>
+                    <option value="Crypto">Crypto</option>
+                    <option value="ETF">ETF</option>
+                    <option value="Bond">Bond</option>
+                    <option value="Cash">Cash</option>
+                </select>
                 <button class="add-btn" onclick="addAsset()">Add</button>
             </div>
         </div>
@@ -205,7 +278,10 @@
             const tbody = document.getElementById("table-body");
             tbody.innerHTML = "";
 
+            let composition = {};   // ⭐ 图表统计
+
             data.forEach(item => {
+
                 const row = `
                     <tr>
                         <td>${item.name}</td>
@@ -231,10 +307,19 @@
                         </td>
                     </tr>
                 `;
+
                 tbody.innerHTML += row;
+
+                // ⭐ 统计每个 type 的总 value
+                let type = item.type || "Unknown";
+                composition[type] = (composition[type] || 0) + item.totalValue;
             });
 
             loadTotal();
+
+            // ⭐ 画图
+            drawChart(composition);
+
         } catch (error) {
             console.error(error);
             alert("Failed to load portfolio data.");
@@ -256,15 +341,129 @@
         }
     }
 
+    let chart;
+
+    function drawChart(data) {
+        const ctx = document.getElementById('chart').getContext('2d');
+
+        if (chart) chart.destroy();
+
+        const labels = Object.keys(data);
+        const values = Object.values(data);
+
+        const total = values.reduce((a, b) => a + b, 0);
+
+        const colors = [
+            '#1f2937',   // dark
+            '#3b82f6',   // blue
+            '#d1d5db'    // gray
+        ];
+
+        chart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: colors
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: { display: false }
+                }
+            },
+            plugins: [{
+                id: 'centerText',
+                beforeDraw(chart) {
+                    const { width } = chart;
+                    const { height } = chart;
+                    const ctx = chart.ctx;
+
+                    ctx.restore();
+
+                    ctx.font = '12px sans-serif';
+                    ctx.fillStyle = '#666';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Assets', width / 2, height / 2 - 10);
+
+                    ctx.font = 'bold 18px sans-serif';
+                    ctx.fillStyle = '#111';
+                    ctx.fillText(values.length, width / 2, height / 2 + 15);
+
+                    ctx.save();
+                }
+            }]
+        });
+
+        // ===== 右侧 legend =====
+        const legendDiv = document.getElementById('legend');
+        legendDiv.innerHTML = '';
+
+        labels.forEach((label, i) => {
+            const percent = total === 0 ? 0 : ((values[i] / total) * 100).toFixed(0);
+
+            legendDiv.innerHTML += `
+                <div class="legend-item">
+                    <div class="legend-left">
+                        <div class="legend-color" style="background:${colors[i]}"></div>
+                        ${label}
+                    </div>
+                    <div>${percent}%</div>
+                </div>
+            `;
+        });
+    }
+
+    async function searchTicker() {
+        const keyword = document.getElementById("ticker").value;
+
+        if (keyword.length < 1) {
+            document.getElementById("suggestions").innerHTML = "";
+            return;
+        }
+
+        const res = await fetch(API + "/stocks/search?q=" + keyword);
+        const data = await res.json();
+
+        const box = document.getElementById("suggestions");
+        box.innerHTML = "";
+
+        data.slice(0,5).forEach(item => {
+            const div = document.createElement("div");
+            div.style.cursor = "pointer";
+            div.style.padding = "6px";
+
+            div.innerText = item.symbol + " - " + item.description;
+
+            div.onclick = () => {
+                document.getElementById("ticker").value = item.symbol;
+                box.innerHTML = "";
+            };
+
+            box.appendChild(div);
+        });
+    }
+
     async function addAsset() {
         const tickerInput = document.getElementById("ticker");
         const quantityInput = document.getElementById("quantity");
+        const typeInput = document.getElementById("type");
 
         const ticker = tickerInput.value.trim().toUpperCase();
         const quantity = Number(quantityInput.value);
+        const type = typeInput.value.trim();
 
         if (!ticker) {
             alert("Please enter a ticker.");
+            return;
+        }
+
+        if (!type) {
+            alert("Please enter an asset type.");
             return;
         }
 
@@ -279,7 +478,8 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     ticker: ticker,
-                    quantity: quantity
+                    quantity: quantity,
+                    type: type
                 })
             });
 
@@ -290,6 +490,7 @@
 
             tickerInput.value = "";
             quantityInput.value = "";
+            typeInput.value = "";
             loadPortfolio();
         } catch (error) {
             console.error(error);

@@ -8,9 +8,12 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class PortfolioService {
+
+    private static final Set<String> ALLOWED_TYPES = Set.of("Equity", "Crypto", "ETF", "Bond", "Cash");
 
     @Autowired
     private PortfolioRepository repository;
@@ -22,12 +25,17 @@ public class PortfolioService {
         return repository.findAll().stream()
                 .map(item -> {
                     double price = finnhubService.getPrice(item.getTicker());
+                    String type = item.getType();
+
+                    if (type == null || type.isBlank()) {
+                        type = finnhubService.getType(item.getTicker());
+                    }
 
                     return new PortfolioResponse(
                             item.getId(),
-                            finnhubService.getName(item.getTicker()),   // ✅
+                            finnhubService.getName(item.getTicker()),
                             item.getTicker(),
-                            finnhubService.getType(item.getTicker()),   // ✅
+                            type,
                             item.getQuantity(),
                             price,
                             item.getTime()
@@ -41,11 +49,16 @@ public class PortfolioService {
             throw new IllegalArgumentException("Ticker cannot be empty.");
         }
 
+        if (item.getType() == null || item.getType().trim().isEmpty()) {
+            throw new IllegalArgumentException("Type cannot be empty.");
+        }
+
         if (item.getQuantity() <= 0) {
             throw new IllegalArgumentException("Quantity must be a positive integer.");
         }
 
         item.setTicker(item.getTicker().trim().toUpperCase());
+        item.setType(normalizeType(item.getType()));
         item.setTime(LocalDateTime.now());
 
         return repository.save(item);
@@ -78,5 +91,27 @@ public class PortfolioService {
         return repository.findAll().stream()
                 .mapToDouble(item -> item.getQuantity() * finnhubService.getPrice(item.getTicker())) // ✅
                 .sum();
+    }
+    private String normalizeType(String type) {
+        String normalized = type.trim();
+
+        if (normalized.isEmpty()) {
+            throw new IllegalArgumentException("Type cannot be empty.");
+        }
+
+        String canonical = switch (normalized.toLowerCase()) {
+            case "equity" -> "Equity";
+            case "crypto" -> "Crypto";
+            case "etf" -> "ETF";
+            case "bond" -> "Bond";
+            case "cash" -> "Cash";
+            default -> throw new IllegalArgumentException("Type must be one of: Equity, Crypto, ETF, Bond, Cash.");
+        };
+
+        if (!ALLOWED_TYPES.contains(canonical)) {
+            throw new IllegalArgumentException("Type must be one of: Equity, Crypto, ETF, Bond, Cash.");
+        }
+
+        return canonical;
     }
 }
