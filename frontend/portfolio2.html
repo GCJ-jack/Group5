@@ -120,6 +120,33 @@
                     <h3>Holdings</h3>
                     <p>Current assets synced from the local portfolio service.</p>
                   </div>
+
+                  <label class="search-field holdings-search" aria-label="Search holdings">
+                    <span class="material-symbols-outlined search-field__icon">search</span>
+                    <input
+                      id="portfolio-search-input"
+                      type="text"
+                      placeholder="Search company, ticker, or type..."
+                      class="search-field__input"
+                    />
+                  </label>
+
+                  <label class="portfolio-sort">
+                    <span>Sort by</span>
+                    <select id="portfolio-sort-select">
+                      <option value="value-desc">Total Value ↓</option>
+                      <option value="value-asc">Total Value ↑</option>
+                      <option value="ticker-asc">Ticker A-Z</option>
+                      <option value="ticker-desc">Ticker Z-A</option>
+                      <option value="quantity-desc">Quantity ↓</option>
+                      <option value="quantity-asc">Quantity ↑</option>
+                    </select>
+                  </label>
+
+                  <div class="portfolio-refresh-meta">
+                    <span>Auto-refresh every 30s</span>
+                    <strong id="portfolio-last-updated">Waiting for first sync...</strong>
+                  </div>
                 </div>
 
                 <div class="portfolio-table-wrap">
@@ -152,7 +179,7 @@
                 <div class="composition-shell">
                   <div class="composition-chart" id="composition-chart" aria-label="Portfolio composition chart">
                     <div class="composition-chart__center">
-                      <span>Assets</span>
+                      <span>Types</span>
                       <strong id="composition-count">0</strong>
                     </div>
                   </div>

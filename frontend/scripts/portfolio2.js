@@ -3,6 +3,8 @@ const API = "http://localhost:8080";
 const tableBody = document.getElementById("table-body");
 const totalElement = document.getElementById("total");
 const assetForm = document.getElementById("asset-form");
+const searchInput = document.getElementById("portfolio-search-input");
+const sortSelect = document.getElementById("portfolio-sort-select");
 const tickerInput = document.getElementById("ticker");
 const quantityInput = document.getElementById("quantity");
 const typeInput = document.getElementById("type");
@@ -10,6 +12,12 @@ const tickerSearchDropdown = document.getElementById("ticker-search-dropdown");
 const compositionChart = document.getElementById("composition-chart");
 const compositionCount = document.getElementById("composition-count");
 const compositionLegend = document.getElementById("composition-legend");
+const lastUpdatedElement = document.getElementById("portfolio-last-updated");
+
+const AUTO_REFRESH_INTERVAL_MS = 30000;
+
+let portfolioRequestInFlight = false;
+let portfolioItems = [];
 
 let tickerSearchTimeoutId = null;
 
@@ -52,10 +60,84 @@ function formatMoney(value) {
   return `$${Number(value).toFixed(2)}`;
 }
 
+function formatLastUpdated(date) {
+  return date.toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function showToast(message, tone = "info") {
+  let toastRoot = document.getElementById("toast-root");
+
+  if (!toastRoot) {
+    toastRoot = document.createElement("div");
+    toastRoot.id = "toast-root";
+    toastRoot.className = "toast-root";
+    document.body.appendChild(toastRoot);
+  }
+
+  const toast = document.createElement("div");
+  toast.className = `toast toast--${tone}`;
+  toast.textContent = message;
+  toastRoot.appendChild(toast);
+
+  window.setTimeout(() => {
+    toast.classList.add("is-leaving");
+    window.setTimeout(() => toast.remove(), 220);
+  }, 2600);
+}
+
 function isPositiveInteger(value) {
   return Number.isInteger(value) && value > 0;
 }
 
+function getSortedItems(items) {
+  const sortedItems = [...items];
+
+  switch (sortSelect.value) {
+    case "value-asc":
+      sortedItems.sort((left, right) => Number(left.totalValue) - Number(right.totalValue));
+      break;
+    case "ticker-asc":
+      sortedItems.sort((left, right) => left.ticker.localeCompare(right.ticker));
+      break;
+    case "ticker-desc":
+      sortedItems.sort((left, right) => right.ticker.localeCompare(left.ticker));
+      break;
+    case "quantity-desc":
+      sortedItems.sort((left, right) => Number(right.quantity) - Number(left.quantity));
+      break;
+    case "quantity-asc":
+      sortedItems.sort((left, right) => Number(left.quantity) - Number(right.quantity));
+      break;
+    case "value-desc":
+    default:
+      sortedItems.sort((left, right) => Number(right.totalValue) - Number(left.totalValue));
+      break;
+  }
+
+  return sortedItems;
+}
+
+function getVisibleItems() {
+  const keyword = searchInput.value.trim().toLowerCase();
+  const filteredItems = keyword
+    ? portfolioItems.filter((item) =>
+        [item.name, item.ticker, item.type]
+          .filter(Boolean)
+          .some((value) => value.toLowerCase().includes(keyword)),
+      )
+    : portfolioItems;
+
+  return getSortedItems(filteredItems);
+}
+
+function renderPortfolioView() {
+  const visibleItems = getVisibleItems();
+  renderRows(visibleItems);
+  renderComposition(visibleItems);
 function hideTickerSearchDropdown() {
   tickerSearchDropdown.hidden = true;
   tickerSearchDropdown.innerHTML = "";
@@ -295,24 +377,40 @@ async function loadTotal() {
     totalElement.innerText = formatMoney(total);
   } catch (error) {
     console.error(error);
-    alert("Failed to load total balance.");
+    showToast("Failed to load total balance.", "error");
   }
 }
 
-async function loadPortfolio() {
+function updateLastUpdated() {
+  lastUpdatedElement.textContent = `Last updated ${formatLastUpdated(new Date())}`;
+}
+
+async function loadPortfolio(options = {}) {
+  const { silent = false } = options;
+
+  if (portfolioRequestInFlight) {
+    return;
+  }
+
+  portfolioRequestInFlight = true;
+
   try {
     const response = await fetch(`${API}/portfolio`);
     if (!response.ok) {
       throw new Error("Failed to load portfolio");
     }
 
-    const data = await response.json();
-    renderRows(data);
-    renderComposition(data);
+    portfolioItems = await response.json();
+    renderPortfolioView();
     await loadTotal();
+    updateLastUpdated();
   } catch (error) {
     console.error(error);
-    alert("Failed to load portfolio data.");
+    if (!silent) {
+      showToast("Failed to load portfolio data.", "error");
+    }
+  } finally {
+    portfolioRequestInFlight = false;
   }
 }
 
@@ -322,17 +420,17 @@ async function addAsset() {
   const type = typeInput.value.trim();
 
   if (!ticker) {
-    alert("Please enter a ticker.");
+    showToast("Please enter a ticker.", "error");
     return;
   }
 
   if (!isPositiveInteger(quantity)) {
-    alert("Quantity must be a positive integer.");
+    showToast("Quantity must be a positive integer.", "error");
     return;
   }
 
   if (!type) {
-    alert("Please select an asset type.");
+    showToast("Please select an asset type.", "error");
     return;
   }
 
@@ -353,9 +451,10 @@ async function addAsset() {
     typeInput.value = "";
     hideTickerSearchDropdown();
     await loadPortfolio();
+    showToast("Asset added successfully.", "success");
   } catch (error) {
     console.error(error);
-    alert(error.message || "Failed to add asset.");
+    showToast(error.message || "Failed to add asset.", "error");
   }
 }
 
@@ -364,12 +463,12 @@ async function sellAsset(id, currentQuantity) {
   const sellQuantity = Number(sellInput.value);
 
   if (!isPositiveInteger(sellQuantity)) {
-    alert("Sell quantity must be a positive integer.");
+    showToast("Sell quantity must be a positive integer.", "error");
     return;
   }
 
   if (sellQuantity > currentQuantity) {
-    alert("Sell quantity cannot be greater than current holdings.");
+    showToast("Sell quantity cannot be greater than current holdings.", "error");
     return;
   }
 
@@ -386,9 +485,10 @@ async function sellAsset(id, currentQuantity) {
     }
 
     await loadPortfolio();
+    showToast("Asset updated successfully.", "success");
   } catch (error) {
     console.error(error);
-    alert(error.message || "Failed to sell asset.");
+    showToast(error.message || "Failed to sell asset.", "error");
   }
 }
 
@@ -438,4 +538,15 @@ tableBody.addEventListener("click", async (event) => {
   await sellAsset(id, currentQuantity);
 });
 
+searchInput.addEventListener("input", () => {
+  renderPortfolioView();
+});
+
+sortSelect.addEventListener("change", () => {
+  renderPortfolioView();
+});
+
 loadPortfolio();
+window.setInterval(() => {
+  loadPortfolio({ silent: true });
+}, AUTO_REFRESH_INTERVAL_MS);
