@@ -138,6 +138,8 @@ function renderPortfolioView() {
   const visibleItems = getVisibleItems();
   renderRows(visibleItems);
   renderComposition(visibleItems);
+}
+
 function hideTickerSearchDropdown() {
   tickerSearchDropdown.hidden = true;
   tickerSearchDropdown.innerHTML = "";
@@ -223,7 +225,7 @@ function renderTickerSearchResults(results) {
 
 async function searchTickerSymbols(keyword) {
   try {
-    const response = await fetch(`${API}/search?keyword=${encodeURIComponent(keyword)}`);
+    const response = await fetch(`${API}/stocks/search?q=${encodeURIComponent(keyword)}`);
     if (!response.ok) {
       throw new Error("Failed to search symbols");
     }
