@@ -1,11 +1,15 @@
 package com.group5.backend.controller;
 
 import com.group5.backend.model.dto.FinnhubNewsItem;
+import com.group5.backend.model.dto.MarketCandleResponse;
 import com.group5.backend.model.dto.QuoteResponse;
 import com.group5.backend.service.FinnhubService;
+import com.group5.backend.service.YahooFinanceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @RequestMapping("/api/market")
@@ -14,9 +18,11 @@ import java.util.List;
 public class MarketController {
 
     private final FinnhubService finnhubService;
+    private final YahooFinanceService yahooFinanceService;
 
-    public MarketController(FinnhubService finnhubService) {
+    public MarketController(FinnhubService finnhubService, YahooFinanceService yahooFinanceService) {
         this.finnhubService = finnhubService;
+        this.yahooFinanceService = yahooFinanceService;
     }
 
     @GetMapping("/news")
@@ -32,14 +38,46 @@ public class MarketController {
         return ResponseEntity.ok(news);
     }
 
+    @GetMapping("/company-news")
+    public ResponseEntity<List<FinnhubNewsItem>> getCompanyNews(
+            @RequestParam String symbol,
+            @RequestParam String from,
+            @RequestParam String to
+    ) {
+        try {
+            LocalDate fromDate = LocalDate.parse(from);
+            LocalDate toDate = LocalDate.parse(to);
+
+            if (fromDate.isAfter(toDate)) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            return ResponseEntity.ok(finnhubService.getCompanyNews(symbol, fromDate, toDate));
+        } catch (DateTimeParseException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     @GetMapping("/trending")
-    public ResponseEntity<List<QuoteResponse>> getMarketTrending(@RequestParam(defaultValue = "AAPL,TSLA,NVDA") List<String> symbols){
+    public ResponseEntity<List<QuoteResponse>> getMarketTrending(@RequestParam List<String> symbols) {
+        if (symbols == null || symbols.isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
 
         List<QuoteResponse> result = symbols.stream()
                 .map(finnhubService::getQuote)
                 .toList();
 
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/candles")
+    public ResponseEntity<MarketCandleResponse> getCandles(
+            @RequestParam String symbol,
+            @RequestParam(defaultValue = "1mo") String range,
+            @RequestParam(defaultValue = "DAILY") String interval
+    ) {
+        return ResponseEntity.ok(yahooFinanceService.getCandles(symbol, range, interval));
     }
 
 }

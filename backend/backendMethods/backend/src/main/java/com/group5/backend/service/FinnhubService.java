@@ -9,6 +9,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.*;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -46,6 +47,29 @@ public class FinnhubService {
 
         return Arrays.stream(response)
                 .sorted(Comparator.comparingLong(FinnhubNewsItem::id).reversed())
+                .toList();
+    }
+
+    public List<FinnhubNewsItem> getCompanyNews(String symbol, LocalDate from, LocalDate to) {
+        validateToken();
+
+        FinnhubNewsItem[] response = finnhubRestClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/company-news")
+                        .queryParam("symbol", symbol.toUpperCase(Locale.ROOT))
+                        .queryParam("from", from)
+                        .queryParam("to", to)
+                        .queryParam("token", apiToken)
+                        .build())
+                .retrieve()
+                .body(FinnhubNewsItem[].class);
+
+        if (response == null) {
+            return List.of();
+        }
+
+        return Arrays.stream(response)
+                .sorted(Comparator.comparingLong(FinnhubNewsItem::datetime).reversed())
                 .toList();
     }
 
@@ -201,15 +225,6 @@ public class FinnhubService {
             e.printStackTrace();
             return new QuoteResponse(symbol, 0,0,0,0,0,0,0);
         }
-    }
-
-    private String getCompanyName(String symbol) {
-        return switch (symbol) {
-            case "AAPL" -> "Apple Inc.";
-            case "TSLA" -> "Tesla, Inc.";
-            case "NVDA" -> "NVIDIA Corp.";
-            default -> symbol;
-        };
     }
 
     public List<SearchResultDto> search(String symbol) {

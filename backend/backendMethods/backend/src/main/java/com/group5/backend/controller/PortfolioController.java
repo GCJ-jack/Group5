@@ -3,6 +3,7 @@ package com.group5.backend.controller;
 import com.group5.backend.model.PortfolioItem;
 import com.group5.backend.model.PortfolioResponse;
 import com.group5.backend.model.SellRequest;
+import com.group5.backend.model.dto.PortfolioGainerResponse;
 import com.group5.backend.service.PortfolioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,11 @@ public class PortfolioController {
     @GetMapping("/portfolio/value")
     public double totalValue() {
         return service.getTotalValue();
+    }
+
+    @GetMapping("/portfolio/top-gainers")
+    public List<PortfolioGainerResponse> topGainers(@RequestParam(defaultValue = "5") int limit) {
+        return service.getTopGainers(limit);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

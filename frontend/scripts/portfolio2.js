@@ -8,6 +8,7 @@ const sortSelect = document.getElementById("portfolio-sort-select");
 const tickerInput = document.getElementById("ticker");
 const quantityInput = document.getElementById("quantity");
 const typeInput = document.getElementById("type");
+const tickerSearchDropdown = document.getElementById("ticker-search-dropdown");
 const compositionChart = document.getElementById("composition-chart");
 const compositionCount = document.getElementById("composition-count");
 const compositionLegend = document.getElementById("composition-legend");
@@ -18,6 +19,8 @@ const AUTO_REFRESH_INTERVAL_MS = 30000;
 let portfolioRequestInFlight = false;
 let portfolioItems = [];
 
+let tickerSearchTimeoutId = null;
+
 const COMPOSITION_COLORS = {
   Equity: "#101828",
   Crypto: "#3b82f6",
@@ -26,6 +29,24 @@ const COMPOSITION_COLORS = {
   Cash: "#cbd5e1",
   Unknown: "#94a3b8",
 };
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (character) => {
+    const entities = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    };
+
+    return entities[character];
+  });
+}
+
+function normalizeSearchValue(value) {
+  return String(value || "").trim().toUpperCase();
+}
 
 function formatTime(time) {
   if (!time) {
@@ -117,6 +138,116 @@ function renderPortfolioView() {
   const visibleItems = getVisibleItems();
   renderRows(visibleItems);
   renderComposition(visibleItems);
+function hideTickerSearchDropdown() {
+  tickerSearchDropdown.hidden = true;
+  tickerSearchDropdown.innerHTML = "";
+}
+
+function renderTickerSearchState(message) {
+  tickerSearchDropdown.innerHTML = `
+    <div class="search-dropdown__state">${escapeHtml(message)}</div>
+  `;
+  tickerSearchDropdown.hidden = false;
+}
+
+function getTickerSimilarityScore(query, result) {
+  const normalizedQuery = normalizeSearchValue(query);
+  const symbol = normalizeSearchValue(result.symbol);
+
+  if (!normalizedQuery) {
+    return 0;
+  }
+
+  let score = 0;
+
+  if (symbol === normalizedQuery) {
+    score += 1000;
+  }
+
+  if (symbol.startsWith(normalizedQuery)) {
+    score += 700 - Math.max(0, symbol.length - normalizedQuery.length) * 8;
+  } else if (symbol.includes(normalizedQuery)) {
+    score += 420 - symbol.indexOf(normalizedQuery) * 12;
+  }
+
+  if (symbol[0] === normalizedQuery[0]) {
+    score += 60;
+  }
+
+  score -= Math.abs(symbol.length - normalizedQuery.length) * 4;
+
+  return score;
+}
+
+function rankTickerSearchResults(results, keyword) {
+  const normalizedQuery = normalizeSearchValue(keyword);
+  const filteredResults =
+    normalizedQuery.length === 1
+      ? results.filter((result) => normalizeSearchValue(result.symbol).startsWith(normalizedQuery))
+      : results;
+
+  return [...filteredResults].sort((left, right) => {
+    const rightScore = getTickerSimilarityScore(keyword, right);
+    const leftScore = getTickerSimilarityScore(keyword, left);
+
+    if (rightScore !== leftScore) {
+      return rightScore - leftScore;
+    }
+
+    return left.symbol.localeCompare(right.symbol);
+  });
+}
+
+function renderTickerSearchResults(results) {
+  if (!results.length) {
+    renderTickerSearchState("No matching symbols found.");
+    return;
+  }
+
+  tickerSearchDropdown.innerHTML = results
+    .map(
+      (result) => `
+        <button
+          class="search-dropdown__item"
+          type="button"
+          data-symbol="${escapeHtml(result.symbol)}"
+        >
+          <span class="search-dropdown__symbol">${escapeHtml(result.symbol)}</span>
+        </button>
+      `,
+    )
+    .join("");
+
+  tickerSearchDropdown.hidden = false;
+}
+
+async function searchTickerSymbols(keyword) {
+  try {
+    const response = await fetch(`${API}/search?keyword=${encodeURIComponent(keyword)}`);
+    if (!response.ok) {
+      throw new Error("Failed to search symbols");
+    }
+
+    const results = await response.json();
+    renderTickerSearchResults(rankTickerSearchResults(results, keyword).slice(0, 8));
+  } catch (error) {
+    console.error(error);
+    renderTickerSearchState("Search is temporarily unavailable.");
+  }
+}
+
+function scheduleTickerSearch(keyword) {
+  clearTimeout(tickerSearchTimeoutId);
+
+  if (keyword.length < 1) {
+    hideTickerSearchDropdown();
+    return;
+  }
+
+  renderTickerSearchState("Searching symbols...");
+  tickerSearchTimeoutId = window.setTimeout(() => {
+    searchTickerSymbols(keyword);
+  }, 200);
 }
 
 function renderEmptyState() {
@@ -318,6 +449,7 @@ async function addAsset() {
     tickerInput.value = "";
     quantityInput.value = "";
     typeInput.value = "";
+    hideTickerSearchDropdown();
     await loadPortfolio();
     showToast("Asset added successfully.", "success");
   } catch (error) {
@@ -363,6 +495,36 @@ async function sellAsset(id, currentQuantity) {
 assetForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   await addAsset();
+});
+
+tickerInput.addEventListener("input", (event) => {
+  scheduleTickerSearch(event.target.value.trim());
+});
+
+tickerInput.addEventListener("focus", () => {
+  const keyword = tickerInput.value.trim();
+  if (keyword.length >= 1 && tickerSearchDropdown.innerHTML) {
+    tickerSearchDropdown.hidden = false;
+  }
+});
+
+tickerSearchDropdown.addEventListener("click", (event) => {
+  const option = event.target.closest("[data-symbol]");
+  if (!option) {
+    return;
+  }
+
+  tickerInput.value = option.dataset.symbol;
+  hideTickerSearchDropdown();
+  quantityInput.focus();
+});
+
+document.addEventListener("click", (event) => {
+  if (event.target.closest(".form-field--ticker")) {
+    return;
+  }
+
+  hideTickerSearchDropdown();
 });
 
 tableBody.addEventListener("click", async (event) => {

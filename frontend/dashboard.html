@@ -26,13 +26,16 @@
         <div class="top-nav__brand-group">
           <span class="top-nav__brand">Financial Atelier</span>
 
-          <label class="search-field" aria-label="Search markets, assets, or news">
+          <label class="search-field dashboard-search" aria-label="Search markets, assets, or news">
             <span class="material-symbols-outlined search-field__icon">search</span>
             <input
+              id="dashboard-search-input"
               type="text"
-              placeholder="Search markets, assets, or news..."
+              placeholder="Search companies or ticker symbols..."
               class="search-field__input"
+              autocomplete="off"
             />
+            <div id="dashboard-search-dropdown" class="search-dropdown search-dropdown--dashboard" hidden></div>
           </label>
         </div>
 
@@ -74,12 +77,8 @@
             <span>Portfolio</span>
           </a>
           <a href="#" class="side-nav__link">
-            <span class="material-symbols-outlined">article</span>
-            <span>News</span>
-          </a>
-          <a href="#" class="side-nav__link">
-            <span class="material-symbols-outlined">monitoring</span>
-            <span>Analysis</span>
+            <span class="material-symbols-outlined">smart_toy</span>
+            <span>AI Assistance</span>
           </a>
           <a href="#" class="side-nav__link">
             <span class="material-symbols-outlined">settings</span>
@@ -135,38 +134,17 @@
 
               <div class="chart-shell">
                 <div class="chart-shell__glow"></div>
-
-                <svg viewBox="0 0 800 200" preserveAspectRatio="none" class="chart-shell__svg">
-                  <defs>
-                    <linearGradient id="performanceGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stop-color="rgba(17, 24, 39, 0.25)"></stop>
-                      <stop offset="100%" stop-color="rgba(17, 24, 39, 0)"></stop>
-                    </linearGradient>
-                  </defs>
-
-                  <path
-                    d="M0,180 C100,160 150,190 250,140 C350,90 450,120 550,60 C650,0 750,40 800,20"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="4"
-                    stroke-linecap="round"
-                  ></path>
-                  <path
-                    d="M0,180 C100,160 150,190 250,140 C350,90 450,120 550,60 C650,0 750,40 800,20 L800,200 L0,200 Z"
-                    fill="url(#performanceGradient)"
-                  ></path>
-                </svg>
+                <div id="performance-chart" class="chart-shell__chart" aria-label="Portfolio performance chart"></div>
               </div>
             </article>
 
             <article class="card card--holdings">
               <div class="card__header">
-                <h3>Trending</h3>
+                <h3>Top Gainers</h3>
+                <a href="./portfolio2.html" class="text-button">View All Assets</a>
               </div>
 
               <div class="holdings-list" id="holdings-list"></div>
-
-              <button class="text-button">View All Assets</button>
             </article>
           </section>
 
@@ -186,25 +164,8 @@
 
               <div class="news-list" id="news-list"></div>
             </section>
-
-            <aside class="insight-card">
-              <div class="insight-card__orb"></div>
-
-              <div class="insight-card__content">
-                <div>
-                  <h3>Investment Insight</h3>
-                  <p class="insight-card__description">
-                    Your portfolio is currently 15% overweight in Technology. Consider
-                    diversifying into defensive sectors like Utilities to reduce volatility.
-                  </p>
-
-                  <div class="insight-card__checks" id="suggestion-list"></div>
-                </div>
-
-                <button class="insight-card__button">Apply Optimization</button>
-              </div>
-            </aside>
           </section>
+
         </div>
       </main>
 
@@ -214,6 +175,7 @@
     </div>
 
     <script src="./scripts/data.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="./scripts/main.js"></script>
   </body>
 </html>

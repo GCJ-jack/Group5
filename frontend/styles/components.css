@@ -120,6 +120,10 @@
   align-items: center;
 }
 
+.dashboard-search {
+  width: min(34vw, 24rem);
+}
+
 .search-field__icon {
   position: absolute;
   left: 0.85rem;
@@ -136,6 +140,65 @@
   padding: 0.85rem 1rem 0.85rem 2.7rem;
   color: var(--ink);
   outline: none;
+}
+
+.dashboard-search .search-field__input {
+  width: 100%;
+}
+
+.search-dropdown {
+  position: absolute;
+  top: calc(100% + 0.55rem);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
+  backdrop-filter: blur(18px);
+}
+
+.search-dropdown[hidden] {
+  display: none;
+}
+
+.search-dropdown__item,
+.search-dropdown__state {
+  width: 100%;
+  padding: 0.95rem 1rem;
+}
+
+.search-dropdown__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  text-align: left;
+  transition: background 0.2s ease;
+}
+
+.search-dropdown__item:hover {
+  background: rgba(210, 230, 251, 0.45);
+}
+
+.search-dropdown__item + .search-dropdown__item,
+.search-dropdown__state {
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.search-dropdown__symbol {
+  color: var(--primary);
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.search-dropdown__description,
+.search-dropdown__state {
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
 }
 
 .icon-button {
@@ -362,6 +425,12 @@
   min-height: 24rem;
 }
 
+.card--holdings {
+  display: flex;
+  flex-direction: column;
+  min-height: 24rem;
+}
+
 .card__header,
 .section-heading {
   display: flex;
@@ -417,7 +486,7 @@
   filter: blur(24px);
 }
 
-.chart-shell__svg {
+.chart-shell__chart {
   position: relative;
   width: 100%;
   height: 100%;
@@ -436,11 +505,20 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1rem 0;
+  padding: 1rem;
+  border-radius: 1.25rem;
 }
 
 .holding-row:not(:last-child) {
   border-bottom: 1px solid var(--line);
+}
+
+.holding-row--positive {
+  background: rgba(203, 58, 49, 0.08);
+}
+
+.holding-row--negative {
+  background: rgba(10, 127, 85, 0.08);
 }
 
 .holding-row__identity {
@@ -483,12 +561,20 @@
   text-align: right;
 }
 
+.holding-change-pill {
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
 .is-positive {
-  color: #0a7f55;
+  color: #cb3a31;
+  background: rgba(203, 58, 49, 0.14);
 }
 
 .is-negative {
-  color: var(--danger);
+  color: #0a7f55;
+  background: rgba(10, 127, 85, 0.14);
 }
 
 .text-button,

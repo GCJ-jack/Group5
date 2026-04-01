@@ -2,6 +2,8 @@ package com.group5.backend.service;
 
 import com.group5.backend.model.PortfolioItem;
 import com.group5.backend.model.PortfolioResponse;
+import com.group5.backend.model.dto.PortfolioGainerResponse;
+import com.group5.backend.model.dto.QuoteResponse;
 import com.group5.backend.repository.PortfolioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,6 +38,7 @@ public class PortfolioService {
                             .mapToDouble(item -> finnhubService.getPrice(item.getTicker()))
                             .average()
                             .orElse(0.0);
+                    double averageBuyPrice = calculateAverageBuyPrice(group.items(), group.totalQuantity());
 
                     return new PortfolioResponse(
                             group.canonicalItem().getId(),
@@ -43,6 +46,7 @@ public class PortfolioService {
                             ticker,
                             type,
                             group.totalQuantity(),
+                            averageBuyPrice,
                             averagePrice,
                             group.latestTime()
                     );
@@ -63,6 +67,10 @@ public class PortfolioService {
             throw new IllegalArgumentException("Quantity must be a positive integer.");
         }
 
+        if (item.getBuyPrice() < 0) {
+            throw new IllegalArgumentException("Buy price cannot be negative.");
+        }
+
         String ticker = item.getTicker().trim().toUpperCase();
         String type = normalizeType(item.getType());
         LocalDateTime now = LocalDateTime.now();
@@ -77,13 +85,23 @@ public class PortfolioService {
         }
 
         PortfolioItem canonicalItem = existingItems.get(0);
+        int existingQuantity = existingItems.stream()
+                .mapToInt(PortfolioItem::getQuantity)
+                .sum();
         int mergedQuantity = existingItems.stream()
                 .mapToInt(PortfolioItem::getQuantity)
                 .sum() + item.getQuantity();
+        double weightedBuyPrice = calculateWeightedBuyPrice(
+                existingQuantity,
+                calculateAverageBuyPrice(existingItems, existingQuantity),
+                item.getQuantity(),
+                item.getBuyPrice()
+        );
 
         canonicalItem.setTicker(ticker);
         canonicalItem.setType(type);
         canonicalItem.setQuantity(mergedQuantity);
+        canonicalItem.setBuyPrice(weightedBuyPrice);
         canonicalItem.setTime(now);
 
         PortfolioItem savedItem = repository.save(canonicalItem);
@@ -129,6 +147,17 @@ public class PortfolioService {
                 .sum();
     }
 
+    public List<PortfolioGainerResponse> getTopGainers(int limit) {
+        return aggregateItems(repository.findAll()).stream()
+                .map(group -> toPortfolioGainer(group, calculateAverageBuyPrice(group.items(), group.totalQuantity())))
+                .sorted(Comparator
+                        .comparingDouble(PortfolioGainerResponse::profitLossPercent)
+                        .reversed()
+                        .thenComparing(Comparator.comparingDouble(PortfolioGainerResponse::profitLossAmount).reversed()))
+                .limit(Math.max(limit, 1))
+                .toList();
+    }
+
     private String normalizeType(String type) {
         String normalized = type.trim();
 
@@ -160,6 +189,48 @@ public class PortfolioService {
             return finnhubService.getType(item.getTicker());
         }
         return normalizeType(type);
+    }
+
+    private PortfolioGainerResponse toPortfolioGainer(AggregatedPortfolioGroup group, double averageBuyPrice) {
+        String ticker = group.canonicalItem().getTicker();
+        QuoteResponse quote = finnhubService.getQuote(ticker);
+        double currentPrice = quote.currentPrice();
+        double profitLossAmount = (currentPrice - averageBuyPrice) * group.totalQuantity();
+        double profitLossPercent = averageBuyPrice > 0
+                ? ((currentPrice - averageBuyPrice) / averageBuyPrice) * 100
+                : 0.0;
+
+        return new PortfolioGainerResponse(
+                group.canonicalItem().getId(),
+                finnhubService.getName(ticker),
+                ticker,
+                resolveType(group.canonicalItem()),
+                group.totalQuantity(),
+                averageBuyPrice,
+                currentPrice,
+                profitLossAmount,
+                profitLossPercent,
+                quote.percentChange()
+        );
+    }
+
+    private double calculateAverageBuyPrice(List<PortfolioItem> items, int totalQuantity) {
+        if (totalQuantity <= 0) {
+            return 0.0;
+        }
+
+        return items.stream()
+                .mapToDouble(item -> item.getBuyPrice() * item.getQuantity())
+                .sum() / totalQuantity;
+    }
+
+    private double calculateWeightedBuyPrice(int existingQuantity, double existingBuyPrice, int addedQuantity, double addedBuyPrice) {
+        int totalQuantity = existingQuantity + addedQuantity;
+        if (totalQuantity <= 0) {
+            return 0.0;
+        }
+
+        return ((existingQuantity * existingBuyPrice) + (addedQuantity * addedBuyPrice)) / totalQuantity;
     }
 
     private List<AggregatedPortfolioGroup> aggregateItems(List<PortfolioItem> items) {

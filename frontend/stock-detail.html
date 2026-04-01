@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Financial Atelier | Stock Detail</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles/variables.css" />
+    <link rel="stylesheet" href="./styles/reset.css" />
+    <link rel="stylesheet" href="./styles/layout.css" />
+    <link rel="stylesheet" href="./styles/components.css" />
+    <link rel="stylesheet" href="./styles/main.css" />
+    <link rel="stylesheet" href="./styles/stock-detail.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="top-nav">
+        <div class="top-nav__brand-group">
+          <a href="./dashboard.html" class="top-nav__brand">Financial Atelier</a>
+        </div>
+
+        <div class="top-nav__actions">
+          <a href="./dashboard.html" class="button button--surface">
+            <span class="material-symbols-outlined">arrow_back</span>
+            <span>Back to Dashboard</span>
+          </a>
+        </div>
+      </header>
+
+      <main class="main-content stock-detail-main">
+        <div class="page-wrap stock-detail-page">
+          <section class="stock-hero card">
+            <div>
+              <p class="eyebrow">Company Snapshot</p>
+              <h1 id="detail-symbol">--</h1>
+              <p id="detail-company" class="stock-hero__company">Loading company details...</p>
+            </div>
+
+            <div class="stock-hero__stats">
+              <div class="stock-stat-card">
+                <span>Current Price</span>
+                <strong id="quote-price">$0.00</strong>
+              </div>
+              <div class="stock-stat-card">
+                <span>Daily Change</span>
+                <strong id="quote-change">0.00%</strong>
+              </div>
+              <div class="stock-stat-card">
+                <span>Open / Prev Close</span>
+                <strong id="quote-open">$0.00 / $0.00</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="stock-detail-grid">
+            <article class="card stock-chart-card">
+              <div class="card__header">
+                <div>
+                  <h3>Recent Price Performance</h3>
+                  <p class="stock-card__subtle">Candlestick chart for the latest trading sessions.</p>
+                </div>
+
+                <div class="segmented-control" id="candle-range-filters"></div>
+              </div>
+
+              <div class="stock-chart-shell">
+                <div id="stock-candle-chart" class="stock-chart-shell__chart"></div>
+              </div>
+            </article>
+
+            <article class="card stock-news-card">
+              <div class="card__header">
+                <div>
+                  <h3>Company News</h3>
+                  <p class="stock-card__subtle">Latest headlines tied to this company and symbol.</p>
+                </div>
+              </div>
+
+              <div id="company-news-state" class="stock-news-state">Loading company news...</div>
+              <div id="company-news-list" class="stock-news-list"></div>
+            </article>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="./scripts/stock-detail.js"></script>
+  </body>
+</html>

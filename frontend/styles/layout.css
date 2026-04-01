@@ -82,7 +82,7 @@ body {
 }
 
 .news-grid {
-  grid-template-columns: minmax(0, 1.55fr) minmax(20rem, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: stretch;
 }
 
