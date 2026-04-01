@@ -13,6 +13,7 @@ public class PortfolioItem {
     private String ticker;
     private String type;
     private int quantity;
+    private double buyPrice;
     private LocalDateTime time;
 
     public PortfolioItem() {
@@ -50,6 +51,14 @@ public class PortfolioItem {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
+    }
+
+    public double getBuyPrice() {
+        return buyPrice;
+    }
+
+    public void setBuyPrice(double buyPrice) {
+        this.buyPrice = buyPrice;
     }
 
     public LocalDateTime getTime() {

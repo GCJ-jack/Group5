@@ -1,71 +1,36 @@
 window.dashboardData = {
   performanceFilters: ["1D", "1W", "1M", "YTD"],
-  holdings: [
-    {
-      symbol: "AAPL",
-      name: "Apple Inc.",
-      shares: "240 Shares",
-      value: "$42,810.00",
-      change: "+1.2%",
-      positive: true,
-    },
-    {
-      symbol: "TSLA",
-      name: "Tesla, Inc.",
-      shares: "115 Shares",
-      value: "$19,420.50",
-      change: "-0.8%",
-      positive: false,
-    },
-    {
-      symbol: "NVDA",
-      name: "NVIDIA Corp.",
-      shares: "80 Shares",
-      value: "$68,200.12",
-      change: "+5.4%",
-      positive: true,
-    },
-  ],
-  marketNews: [
-    {
-      category: "Macro Economy",
-      published: "14 mins ago",
-      title: "Federal Reserve hints at potential rate stabilization by Q3",
-      summary:
-        "Recent minutes from the FOMC meeting suggest a more dovish stance on inflation as supply chains normalize across the Pacific region.",
-      tone: "primary",
-    },
-    {
-      category: "Technology",
-      published: "2 hours ago",
-      title: "Semiconductor demand spikes as AI infrastructure builds accelerate",
-      summary:
-        "Top-tier cloud providers are increasing capital expenditure guidance for the upcoming fiscal year, signaling durable momentum for chip manufacturers.",
-      tone: "accent",
-    },
-  ],
-  suggestions: [
-    "Rebalance suggested: -5% NVDA, +5% XLU",
-    "Dividend alert: AAPL payout in 3 days",
-  ],
 };
 
+const FALLBACK_NEWS_IMAGE =
+  "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80";
+
+function resolveNewsImage(imageUrl) {
+  if (!imageUrl) {
+    return FALLBACK_NEWS_IMAGE;
+  }
+
+  const normalizedUrl = imageUrl.toLowerCase();
+  const looksLikeLogo =
+    normalizedUrl.includes("/logo/") ||
+    normalizedUrl.includes("_logo") ||
+    normalizedUrl.includes("logo.");
+
+  return looksLikeLogo ? FALLBACK_NEWS_IMAGE : imageUrl;
+}
 
 async function loadNews() {
-  try{
-    const response = await fetch("http://localhost:8080/api/market/news")
-
+  try {
+    const response = await fetch("http://localhost:8080/api/market/news");
     const data = await response.json();
-
     const newsList = document.getElementById("news-list");
 
-    //清空newslist
-    newsList.innerHTML = '';
+    newsList.innerHTML = "";
 
     data.slice(0, 10).forEach((item) => {
-      const newsItem =  `<div class="news-item" style="display:flex; gap:12px; margin-bottom:16px;">
-
-        <img src="${item.image}"
+      const imageUrl = resolveNewsImage(item.image);
+      const newsItem = `<div class="news-item" style="display:flex; gap:12px; margin-bottom:16px;">
+        <img src="${imageUrl}"
              style="width:100px; height:70px; object-fit:cover; border-radius:8px;" />
 
         <div>
@@ -90,36 +55,84 @@ async function loadNews() {
   }
 }
 
-async function getQuote() {
+async function loadTopGainers() {
   try {
-    const response = await fetch("http://localhost:8080/api/market/trending");
-    const data = await response.json();
+    const portfolioResponse = await fetch("http://localhost:8080/portfolio");
+    if (!portfolioResponse.ok) {
+      throw new Error("Failed to load portfolio");
+    }
+
+    const portfolio = await portfolioResponse.json();
+    const uniqueHoldings = Array.from(
+      new Map(
+        portfolio.map((item) => [
+          item.ticker,
+          {
+            ticker: item.ticker,
+            name: item.name,
+            quantity: item.quantity,
+          },
+        ]),
+      ).values(),
+    );
 
     const list = document.getElementById("holdings-list");
-    list.innerHTML = '';
+    list.innerHTML = "";
 
-    data.forEach((item) => {
-      const isPositive = (item.change ?? 0) >= 0; // ✅ 拼写修正 + 防炸
+    if (!uniqueHoldings.length) {
+      list.innerHTML = `
+        <div style="color:var(--muted); font-size:14px;">
+          Add holdings in Portfolio first to see your top gainers.
+        </div>
+      `;
+      return;
+    }
+
+    const query = new URLSearchParams();
+    uniqueHoldings.forEach((item) => {
+      query.append("symbols", item.ticker);
+    });
+
+    const quoteResponse = await fetch(`http://localhost:8080/api/market/trending?${query.toString()}`);
+    if (!quoteResponse.ok) {
+      throw new Error("Failed to load quotes");
+    }
+
+    const quotes = await quoteResponse.json();
+    const ranking = quotes
+      .map((quote) => {
+        const holding = uniqueHoldings.find((item) => item.ticker === quote.name);
+        return {
+          symbol: quote.name,
+          name: holding?.name ?? quote.name,
+          quantity: holding?.quantity ?? 0,
+          currentPrice: quote.currentPrice ?? 0,
+          change: quote.change ?? 0,
+          percentChange: quote.percentChange ?? 0,
+        };
+      })
+      .sort((left, right) => right.percentChange - left.percentChange)
+      .slice(0, 5);
+
+    ranking.forEach((item) => {
+      const isPositive = (item.percentChange ?? 0) >= 0;
 
       const html = `
-        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-          
-          <div>
-            <div style="font-weight:600;">${item.name}</div>
-            <div style="font-size:12px; color:gray;">
-              $${(item.currentPrice ?? 0).toFixed(2)}
+        <div class="holding-row ${isPositive ? "holding-row--positive" : "holding-row--negative"}">
+          <div class="holding-row__identity">
+            <div class="holding-row__symbol">${item.symbol}</div>
+            <div>
+              <p>${item.name}</p>
+              <span>${item.quantity} Shares</span>
             </div>
           </div>
 
-          <div style="text-align:right;">
-            <div style="color:${isPositive ? 'green' : 'red'};">
+          <div class="holding-row__metrics">
+            <p>$${(item.currentPrice ?? 0).toFixed(2)}</p>
+            <span class="holding-change-pill ${isPositive ? "is-positive" : "is-negative"}">
               ${isPositive ? '+' : ''}${(item.percentChange ?? 0).toFixed(2)}%
-            </div>
-            <div style="font-size:12px; color:gray;">
-              ${isPositive ? '+' : ''}${(item.change ?? 0).toFixed(2)}
-            </div>
+            </span>
           </div>
-
         </div>
       `;
 
@@ -127,8 +140,8 @@ async function getQuote() {
     });
 
   } catch (error) {
-    console.error("加载行情失败:", error);
+    console.error("加载涨幅排行失败:", error);
   }
 }
-document.addEventListener("DOMContentLoaded", loadNews)
-document.addEventListener("DOMContentLoaded", getQuote);
+document.addEventListener("DOMContentLoaded", loadNews);
+document.addEventListener("DOMContentLoaded", loadTopGainers);
