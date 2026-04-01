@@ -64,15 +64,21 @@
           <section class="stock-detail-grid">
             <article class="card stock-chart-card">
               <div class="card__header">
-                <div>
+                <div class="stock-chart-card__intro">
                   <h3>Recent Price Performance</h3>
-                  <p class="stock-card__subtle">Candlestick chart for the latest trading sessions.</p>
+                  <p class="stock-card__subtle" id="chart-description">
+                    Candlestick chart for the latest trading sessions.
+                  </p>
                 </div>
 
-                <div class="segmented-control" id="candle-range-filters"></div>
+                <div class="stock-chart-card__controls">
+                  <div class="segmented-control segmented-control--compact" id="candle-range-filters"></div>
+                  <div class="segmented-control segmented-control--compact" id="candle-interval-filters"></div>
+                </div>
               </div>
 
               <div class="stock-chart-shell">
+                <div id="stock-candle-chart-state" class="stock-chart-state">Loading price chart...</div>
                 <div id="stock-candle-chart" class="stock-chart-shell__chart"></div>
               </div>
             </article>

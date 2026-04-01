@@ -3,8 +3,8 @@ package com.group5.backend.controller;
 import com.group5.backend.model.dto.FinnhubNewsItem;
 import com.group5.backend.model.dto.MarketCandleResponse;
 import com.group5.backend.model.dto.QuoteResponse;
+import com.group5.backend.service.AlphaVantageService;
 import com.group5.backend.service.FinnhubService;
-import com.group5.backend.service.YahooFinanceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,12 +17,12 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class MarketController {
 
+    private final AlphaVantageService alphaVantageService;
     private final FinnhubService finnhubService;
-    private final YahooFinanceService yahooFinanceService;
 
-    public MarketController(FinnhubService finnhubService, YahooFinanceService yahooFinanceService) {
+    public MarketController(AlphaVantageService alphaVantageService, FinnhubService finnhubService) {
+        this.alphaVantageService = alphaVantageService;
         this.finnhubService = finnhubService;
-        this.yahooFinanceService = yahooFinanceService;
     }
 
     @GetMapping("/news")
@@ -77,7 +77,7 @@ public class MarketController {
             @RequestParam(defaultValue = "1mo") String range,
             @RequestParam(defaultValue = "DAILY") String interval
     ) {
-        return ResponseEntity.ok(yahooFinanceService.getCandles(symbol, range, interval));
+        return ResponseEntity.ok(alphaVantageService.getCandles(symbol, range, interval));
     }
 
 }

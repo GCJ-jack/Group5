@@ -257,4 +257,5 @@ public class FinnhubService {
             return List.of();
         }
     }
+
 }

@@ -6,19 +6,21 @@ const quotePriceElement = document.getElementById("quote-price");
 const quoteChangeElement = document.getElementById("quote-change");
 const quoteOpenElement = document.getElementById("quote-open");
 const candleRangeFiltersRoot = document.getElementById("candle-range-filters");
+const candleIntervalFiltersRoot = document.getElementById("candle-interval-filters");
 const candleChartRoot = document.getElementById("stock-candle-chart");
+const candleChartState = document.getElementById("stock-candle-chart-state");
+const chartDescriptionElement = document.getElementById("chart-description");
 const companyNewsState = document.getElementById("company-news-state");
 const companyNewsList = document.getElementById("company-news-list");
 
-const candleRanges = ["1mo", "3mo", "6mo", "1y"];
+const candleRanges = ["5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "max"];
+const candleIntervals = ["DAILY", "WEEKLY", "MONTHLY"];
 const urlParams = new URLSearchParams(window.location.search);
 const symbol = (urlParams.get("symbol") || "").trim().toUpperCase();
 
 let activeCandleRange = "1mo";
+let activeCandleInterval = "DAILY";
 let candleChart = null;
-
-const FALLBACK_NEWS_IMAGE =
-  "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80";
 
 function formatCurrency(value) {
   return new Intl.NumberFormat("en-US", {
@@ -37,20 +39,6 @@ function formatNewsDate(unixTimestamp) {
   return new Date((unixTimestamp || 0) * 1000).toLocaleString();
 }
 
-function resolveNewsImage(imageUrl) {
-  if (!imageUrl) {
-    return FALLBACK_NEWS_IMAGE;
-  }
-
-  const normalizedUrl = imageUrl.toLowerCase();
-  const looksLikeLogo =
-    normalizedUrl.includes("/logo/") ||
-    normalizedUrl.includes("_logo") ||
-    normalizedUrl.includes("logo.");
-
-  return looksLikeLogo ? FALLBACK_NEWS_IMAGE : imageUrl;
-}
-
 function getNewsDateRange() {
   const to = new Date();
   const from = new Date();
@@ -61,6 +49,35 @@ function getNewsDateRange() {
     from: formatDate(from),
     to: formatDate(to),
   };
+}
+
+function formatIntervalLabel(interval) {
+  return interval.charAt(0) + interval.slice(1).toLowerCase();
+}
+
+function updateChartDescription() {
+  chartDescriptionElement.textContent = `${formatIntervalLabel(activeCandleInterval)} candlestick chart for ${activeCandleRange} of trading history.`;
+}
+
+function setChartState(message, isVisible = true) {
+  candleChartState.textContent = message;
+  candleChartState.hidden = !isVisible;
+  candleChartRoot.hidden = isVisible;
+}
+
+async function readErrorMessage(response, fallbackMessage) {
+  try {
+    const payload = await response.json();
+    return (
+      payload?.detail ||
+      payload?.message ||
+      payload?.error?.description ||
+      payload?.error ||
+      fallbackMessage
+    );
+  } catch (error) {
+    return fallbackMessage;
+  }
 }
 
 function renderRangeFilters() {
@@ -79,6 +96,22 @@ function renderRangeFilters() {
     .join("");
 }
 
+function renderIntervalFilters() {
+  candleIntervalFiltersRoot.innerHTML = candleIntervals
+    .map(
+      (interval) => `
+        <button
+          class="segmented-control__item ${interval === activeCandleInterval ? "is-active" : ""}"
+          type="button"
+          data-interval="${interval}"
+        >
+          ${formatIntervalLabel(interval)}
+        </button>
+      `,
+    )
+    .join("");
+}
+
 function createCandleChart() {
   candleChart = new ApexCharts(candleChartRoot, {
     chart: {
@@ -89,6 +122,16 @@ function createCandleChart() {
       fontFamily: "Inter, sans-serif",
     },
     series: [{ data: [] }],
+    noData: {
+      text: "No chart data available.",
+      align: "center",
+      verticalAlign: "middle",
+      style: {
+        color: "#667085",
+        fontSize: "14px",
+        fontFamily: "Inter, sans-serif",
+      },
+    },
     xaxis: {
       type: "datetime",
       labels: {
@@ -146,11 +189,14 @@ async function loadQuote() {
 }
 
 async function loadCandles(range) {
+  setChartState("Loading price chart...");
   const response = await fetch(
-    `${API}/api/market/candles?symbol=${encodeURIComponent(symbol)}&range=${encodeURIComponent(range)}&interval=DAILY`,
+    `${API}/api/market/candles?symbol=${encodeURIComponent(symbol)}&range=${encodeURIComponent(range)}&interval=${encodeURIComponent(activeCandleInterval)}`,
   );
   if (!response.ok) {
-    throw new Error("Failed to load candles");
+    const message = await readErrorMessage(response, "Failed to load price chart.");
+    setChartState(message);
+    throw new Error(message);
   }
 
   const data = await response.json();
@@ -159,7 +205,9 @@ async function loadCandles(range) {
     y: [candle.open, candle.high, candle.low, candle.close],
   }));
 
+  updateChartDescription();
   candleChart.updateSeries([{ data: seriesData }]);
+  setChartState("", false);
 }
 
 async function loadCompanyNews() {
@@ -186,12 +234,6 @@ async function loadCompanyNews() {
     .map(
       (item) => `
         <article class="stock-news-item">
-          <img
-            class="stock-news-item__image"
-            src="${resolveNewsImage(item.image)}"
-            alt="${item.headline}"
-          />
-
           <div>
             <div class="stock-news-item__meta">
               <span class="stock-news-item__source">${item.source}</span>
@@ -221,6 +263,8 @@ async function initializePage() {
   }
 
   renderRangeFilters();
+  renderIntervalFilters();
+  updateChartDescription();
   createCandleChart();
 
   try {
@@ -240,6 +284,24 @@ candleRangeFiltersRoot.addEventListener("click", async (event) => {
 
   activeCandleRange = button.dataset.range;
   renderRangeFilters();
+  updateChartDescription();
+
+  try {
+    await loadCandles(activeCandleRange);
+  } catch (error) {
+    console.error(error);
+  }
+});
+
+candleIntervalFiltersRoot.addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-interval]");
+  if (!button) {
+    return;
+  }
+
+  activeCandleInterval = button.dataset.interval;
+  renderIntervalFilters();
+  updateChartDescription();
 
   try {
     await loadCandles(activeCandleRange);
