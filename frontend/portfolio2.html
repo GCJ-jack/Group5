@@ -27,11 +27,11 @@
         <div class="top-nav__brand-group">
           <span class="top-nav__brand">Financial Atelier</span>
 
-          <label class="search-field" aria-label="Search assets">
+          <label class="search-field portfolio-search" aria-label="Search assets">
             <span class="material-symbols-outlined search-field__icon">search</span>
             <input
               type="text"
-              placeholder="Search assets, tickers, or orders..."
+              placeholder="Search tickers, company names, or orders..."
               class="search-field__input"
             />
           </label>
@@ -171,9 +171,10 @@
               </div>
 
               <form id="asset-form" class="portfolio-form">
-                <label class="form-field" for="ticker">
+                <label class="form-field form-field--ticker" for="ticker">
                   <span>Ticker</span>
-                  <input id="ticker" type="text" placeholder="e.g. AAPL" />
+                  <input id="ticker" type="text" placeholder="e.g. AAPL" autocomplete="off" />
+                  <div id="ticker-search-dropdown" class="search-dropdown search-dropdown--ticker" hidden></div>
                 </label>
 
                 <label class="form-field" for="quantity">
