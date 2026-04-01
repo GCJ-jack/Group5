@@ -5,19 +5,6 @@ const totalElement = document.getElementById("total");
 const assetForm = document.getElementById("asset-form");
 const tickerInput = document.getElementById("ticker");
 const quantityInput = document.getElementById("quantity");
-const typeInput = document.getElementById("type");
-const compositionChart = document.getElementById("composition-chart");
-const compositionCount = document.getElementById("composition-count");
-const compositionLegend = document.getElementById("composition-legend");
-
-const COMPOSITION_COLORS = {
-  Equity: "#101828",
-  Crypto: "#3b82f6",
-  ETF: "#14b8a6",
-  Bond: "#f97316",
-  Cash: "#cbd5e1",
-  Unknown: "#94a3b8",
-};
 
 function formatTime(time) {
   if (!time) {
@@ -87,70 +74,6 @@ function renderRows(items) {
     .join("");
 }
 
-function renderComposition(items) {
-  if (!items.length) {
-    compositionCount.textContent = "0";
-    compositionChart.style.background = "conic-gradient(#e2e8f0 0deg 360deg)";
-    compositionLegend.innerHTML = `
-      <div class="composition-legend__empty">
-        Composition will appear after you add portfolio holdings.
-      </div>
-    `;
-    return;
-  }
-
-  const totalsByType = items.reduce((accumulator, item) => {
-    const type = item.type || "Unknown";
-    accumulator[type] = (accumulator[type] || 0) + Number(item.totalValue || 0);
-    return accumulator;
-  }, {});
-
-  const entries = Object.entries(totalsByType)
-    .sort(([, left], [, right]) => right - left);
-
-  compositionCount.textContent = String(entries.length);
-
-  const totalValue = entries.reduce((sum, [, value]) => sum + value, 0);
-  let currentAngle = 0;
-
-  const segments = entries.map(([type, value]) => {
-    const percentage = totalValue === 0 ? 0 : (value / totalValue) * 100;
-    const startAngle = currentAngle;
-    currentAngle += (percentage / 100) * 360;
-    const endAngle = currentAngle;
-
-    return {
-      type,
-      value,
-      percentage,
-      color: COMPOSITION_COLORS[type] || COMPOSITION_COLORS.Unknown,
-      startAngle,
-      endAngle,
-    };
-  });
-
-  compositionChart.style.background = `conic-gradient(${segments
-    .map((segment) => `${segment.color} ${segment.startAngle}deg ${segment.endAngle}deg`)
-    .join(", ")})`;
-
-  compositionLegend.innerHTML = segments
-    .map(
-      (segment) => `
-        <div class="composition-legend__item">
-          <div class="composition-legend__label">
-            <span
-              class="composition-legend__swatch"
-              style="background:${segment.color}"
-            ></span>
-            <span>${segment.type}</span>
-          </div>
-          <strong>${segment.percentage.toFixed(0)}%</strong>
-        </div>
-      `,
-    )
-    .join("");
-}
-
 async function loadTotal() {
   try {
     const response = await fetch(`${API}/portfolio/value`);
@@ -175,7 +98,6 @@ async function loadPortfolio() {
 
     const data = await response.json();
     renderRows(data);
-    renderComposition(data);
     await loadTotal();
   } catch (error) {
     console.error(error);
@@ -186,7 +108,6 @@ async function loadPortfolio() {
 async function addAsset() {
   const ticker = tickerInput.value.trim().toUpperCase();
   const quantity = Number(quantityInput.value);
-  const type = typeInput.value.trim();
 
   if (!ticker) {
     alert("Please enter a ticker.");
@@ -198,16 +119,11 @@ async function addAsset() {
     return;
   }
 
-  if (!type) {
-    alert("Please select an asset type.");
-    return;
-  }
-
   try {
     const response = await fetch(`${API}/portfolio`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ticker, quantity, type }),
+      body: JSON.stringify({ ticker, quantity }),
     });
 
     if (!response.ok) {
@@ -217,7 +133,6 @@ async function addAsset() {
 
     tickerInput.value = "";
     quantityInput.value = "";
-    typeInput.value = "";
     await loadPortfolio();
   } catch (error) {
     console.error(error);

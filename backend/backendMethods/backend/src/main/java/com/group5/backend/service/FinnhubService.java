@@ -2,6 +2,7 @@ package com.group5.backend.service;
 
 import com.group5.backend.model.dto.FinnhubNewsItem;
 import com.group5.backend.model.dto.QuoteResponse;
+import com.group5.backend.model.dto.SearchResultDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -211,4 +212,34 @@ public class FinnhubService {
         };
     }
 
+    public List<SearchResultDto> search(String symbol) {
+
+        validateToken();
+
+        try {
+            var response = finnhubRestClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/search")
+                            .queryParam("q", symbol)
+                            .queryParam("token", apiToken)
+                            .build())
+                    .retrieve()
+                    .body(String.class);
+
+            org.json.JSONObject json = new org.json.JSONObject(response);
+            org.json.JSONArray result = json.getJSONArray("result");
+
+            return result.toList().stream()
+                    .map(obj -> (java.util.Map<?, ?>) obj)
+                    .map(map -> new SearchResultDto(
+                            map.get("symbol").toString(),
+                            map.get("description").toString()
+                    ))
+                    .limit(5) // 只返回前5个（很关键）
+                    .toList();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return List.of();
+        }
+    }
 }
