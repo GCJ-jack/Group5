@@ -66,6 +66,13 @@
   align-items: start;
 }
 
+.portfolio-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
 .portfolio-card {
   border-radius: 1.75rem;
   padding: 1.5rem;
@@ -120,9 +127,125 @@
   gap: 1rem;
 }
 
+.portfolio-form select {
+  width: 100%;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 1rem;
+  background: rgba(248, 250, 252, 0.92);
+  padding: 1rem 1rem 1rem 1.05rem;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.portfolio-form select:focus {
+  border-color: rgba(15, 23, 42, 0.28);
+  box-shadow: 0 0 0 4px rgba(210, 230, 251, 0.8);
+  background: white;
+}
+
 .portfolio-form__submit {
   width: 100%;
   justify-content: center;
+}
+
+.composition-shell {
+  display: grid;
+  grid-template-columns: auto minmax(15rem, 1fr);
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.composition-chart {
+  position: relative;
+  width: 13rem;
+  height: 13rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: conic-gradient(#e2e8f0 0deg 360deg);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.18);
+}
+
+.composition-chart::after {
+  content: "";
+  position: absolute;
+  inset: 1.55rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.12);
+}
+
+.composition-chart__center {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.composition-chart__center span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.composition-chart__center strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-family: "Manrope", sans-serif;
+  font-size: 2rem;
+  letter-spacing: -0.05em;
+}
+
+.composition-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.composition-legend__item,
+.composition-legend__label {
+  display: flex;
+  align-items: center;
+}
+
+.composition-legend__item {
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.composition-legend__item:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.composition-legend__label {
+  gap: 0.75rem;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.composition-legend__swatch {
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.composition-legend__item strong {
+  font-family: "Manrope", sans-serif;
+  font-size: 0.95rem;
+}
+
+.composition-legend__empty {
+  color: var(--muted);
+  line-height: 1.6;
 }
 
 .portfolio-action {
@@ -184,6 +307,15 @@
   .portfolio-balance {
     width: 100%;
     min-width: 0;
+  }
+
+  .composition-shell {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .composition-legend {
+    width: 100%;
   }
 }
 
