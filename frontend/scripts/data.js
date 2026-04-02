@@ -2,6 +2,16 @@ window.dashboardData = {
   performanceFilters: ["1M", "3M", "6M", "1Y", "MAX"],
 };
 
+const DASHBOARD_SNAPSHOT_BASKET = [
+  { symbol: "BTC-USD", type: "CRYPTO" },
+  { symbol: "ETH-USD", type: "CRYPTO" },
+  { symbol: "EUR/USD", type: "FOREX" },
+  { symbol: "GBP/USD", type: "FOREX" },
+  { symbol: "SPY", type: "STOCK" },
+  { symbol: "QQQ", type: "STOCK" },
+  { symbol: "GLD", type: "STOCK" },
+];
+
 const FALLBACK_NEWS_IMAGE =
   "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80";
 
@@ -186,6 +196,100 @@ function formatQuoteCurrency(value) {
   }).format(Number(value ?? 0));
 }
 
+function formatSignedQuote(value, digits = 2) {
+  const amount = Number(value ?? 0);
+  return `${amount >= 0 ? "+" : "-"}${Math.abs(amount).toFixed(digits)}`;
+}
+
+function getQuoteDecimals(type) {
+  return String(type || "").toUpperCase() === "FOREX" ? 4 : 2;
+}
+
+function renderMarketSnapshotState(message) {
+  const list = document.getElementById("market-snapshot-list");
+  if (!list) {
+    return;
+  }
+
+  list.innerHTML = `<div class="market-snapshot-state">${escapeHtml(message)}</div>`;
+}
+
+function renderMarketSnapshotRows(quotes) {
+  const list = document.getElementById("market-snapshot-list");
+  if (!list) {
+    return;
+  }
+
+  if (!quotes.length) {
+    renderMarketSnapshotState("No market snapshot data available right now.");
+    return;
+  }
+
+  list.innerHTML = quotes
+    .map((item) => {
+      const type = String(item.type || "STOCK").toUpperCase();
+      const symbol = item.displaySymbol || item.symbol || "--";
+      const price = Number(item.currentPrice ?? 0);
+      const change = Number(item.change ?? 0);
+      const percentChange = Number(item.percentChange ?? 0);
+      const isPositive = percentChange >= 0;
+      const decimals = getQuoteDecimals(type);
+
+      return `
+        <article class="market-snapshot-row ${isPositive ? "market-snapshot-row--positive" : "market-snapshot-row--negative"}">
+          <div class="market-snapshot-row__identity">
+            <div class="market-snapshot-row__symbol">${escapeHtml(symbol)}</div>
+            <div>
+              <p>${escapeHtml(item.name || symbol)}</p>
+              <span>${escapeHtml(type)}</span>
+            </div>
+          </div>
+
+          <div class="market-snapshot-row__metrics">
+            <strong>${price.toFixed(decimals)}</strong>
+            <span class="holding-change-pill ${isPositive ? "is-positive" : "is-negative"}">
+              ${formatSignedQuote(percentChange, 2)}% (${formatSignedQuote(change, decimals)})
+            </span>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+async function fetchMarketSnapshotQuotes() {
+  const response = await fetch("http://localhost:8080/api/market/quotes", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(DASHBOARD_SNAPSHOT_BASKET),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to load market snapshot");
+  }
+
+  return response.json();
+}
+
+async function loadMarketSnapshot() {
+  const list = document.getElementById("market-snapshot-list");
+  if (!list) {
+    return;
+  }
+
+  renderMarketSnapshotState("Loading market snapshot...");
+
+  try {
+    const quotes = await fetchMarketSnapshotQuotes();
+    renderMarketSnapshotRows(quotes.slice(0, 7));
+  } catch (error) {
+    console.error("加载市场快照失败:", error);
+    renderMarketSnapshotState("Failed to load market snapshot.");
+  }
+}
+
 function findQuoteForSymbol(quotes, symbol) {
   const normalizedSymbol = String(symbol || "").trim().toUpperCase();
   return quotes.find((quote) => {
@@ -288,3 +392,4 @@ async function loadFollowingList() {
 document.addEventListener("DOMContentLoaded", loadNews);
 document.addEventListener("DOMContentLoaded", loadTopGainers);
 document.addEventListener("DOMContentLoaded", loadFollowingList);
+document.addEventListener("DOMContentLoaded", loadMarketSnapshot);

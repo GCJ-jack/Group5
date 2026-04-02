@@ -2,8 +2,11 @@ package com.group5.backend.controller;
 
 import com.group5.backend.model.dto.FinnhubNewsItem;
 import com.group5.backend.model.dto.MarketCandleResponse;
+import com.group5.backend.model.dto.MarketQuoteItemRequest;
+import com.group5.backend.model.dto.MarketQuoteResponse;
 import com.group5.backend.model.dto.QuoteResponse;
 import com.group5.backend.service.FinnhubService;
+import com.group5.backend.service.MarketDataService;
 import com.group5.backend.service.TwelveDataService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,10 +22,16 @@ public class MarketController {
 
     private final FinnhubService finnhubService;
     private final TwelveDataService twelveDataService;
+    private final MarketDataService marketDataService;
 
-    public MarketController(FinnhubService finnhubService, TwelveDataService twelveDataService) {
+    public MarketController(
+            FinnhubService finnhubService,
+            TwelveDataService twelveDataService,
+            MarketDataService marketDataService
+    ) {
         this.finnhubService = finnhubService;
         this.twelveDataService = twelveDataService;
+        this.marketDataService = marketDataService;
     }
 
     @GetMapping("/news")
@@ -69,6 +78,18 @@ public class MarketController {
                 .toList();
 
         return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/quotes")
+    public ResponseEntity<List<MarketQuoteResponse>> getMarketQuotes(
+            @RequestBody(required = false) List<MarketQuoteItemRequest> requests
+    ) {
+        return ResponseEntity.ok(marketDataService.getQuotes(requests));
+    }
+
+    @GetMapping("/following/quotes")
+    public ResponseEntity<List<MarketQuoteResponse>> getFollowingQuotes() {
+        return ResponseEntity.ok(marketDataService.getFollowingQuotes());
     }
 
     @GetMapping("/candles")
