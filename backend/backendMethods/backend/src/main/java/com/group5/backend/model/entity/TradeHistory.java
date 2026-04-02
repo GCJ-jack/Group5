@@ -24,6 +24,10 @@ public class TradeHistory {
     @Column(name = "type")
     private String type; // 直接用 String 接收，不需要 Enum 转换
 
+    // 资产类型字段
+    @Column(name = "asset_type")
+    private String assetType;
+
     @Column(name = "price")
     private BigDecimal price;
 
@@ -42,8 +46,44 @@ public class TradeHistory {
     public String getSymbol() { return symbol; }
     public String getType() { return type; }
     public BigDecimal getPrice() { return price; }
+    public String getAssetType() {return assetType;}
     public Integer getQuantity() { return quantity; }
     public BigDecimal getTotalAmount() { return totalAmount; }
     public LocalDateTime getOrderTime() { return orderTime; }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setStockName(String stockName) {
+        this.stockName = stockName;
+    }
+
+    public void setSymbol(String symbol) {
+        this.symbol = symbol;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public void setAssetType(String assetType) {
+        this.assetType = assetType;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public void setTotalAmount(BigDecimal totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
+    public void setOrderTime(LocalDateTime orderTime) {
+        this.orderTime = orderTime;
+    }
 }

@@ -1,0 +1,16 @@
+package com.group5.backend.repository;
+
+import com.group5.backend.model.entity.UserHolding;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface UserHoldingRepository extends JpaRepository<UserHolding, Long> {
+    // 根据股票代码查询持仓
+    Optional<UserHolding> findBySymbol(String symbol);
+}
+
+

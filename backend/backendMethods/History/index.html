@@ -50,6 +50,37 @@
         </div>
     </div>
 
+    <!-- 筛选控制栏 -->
+    <div class="bg-white rounded-lg shadow-sm p-4 mb-6 border border-gray-100 flex items-center gap-3">
+        <!-- 交易类型筛选 -->
+        <div class="flex items-center gap-2">
+            <label class="text-sm font-semibold text-gray-600 whitespace-nowrap"><i class="fas fa-filter mr-1"></i>交易类型:</label>
+            <select id="filterType" class="form-select block w-32 rounded-md border-gray-300 bg-gray-50 border p-2 text-sm focus:border-blue-500 focus:ring-blue-500">
+                <option value="ALL">全部</option>
+                <option value="BUY">买入</option>
+                <option value="SELL">卖出</option>
+            </select>
+        </div>
+
+        <!-- 资产类型筛选 -->
+        <div class="flex items-center gap-2 border-l border-gray-200 pl-3">
+            <label class="text-sm font-semibold text-gray-600 whitespace-nowrap"><i class="fas fa-box mr-1"></i>资产类型:</label>
+            <select id="filterAsset" class="form-select block w-32 rounded-md border-gray-300 bg-gray-50 border p-2 text-sm focus:border-blue-500 focus:ring-blue-500">
+                <option value="ALL">全部</option>
+                <option value="股票">股票</option>
+                <option value="基金">基金</option>
+                <option value="债券">债券</option>
+                <option value="其他">其他</option>
+            </select>
+        </div>
+
+        <div class="flex items-center gap-2 border-l border-gray-200 pl-3 ml-auto">
+            <label class="text-sm font-semibold text-gray-600 whitespace-nowrap"><i class="fas fa-search mr-1"></i>搜索:</label>
+            <input type="text" id="searchInput" placeholder="输入名称或代码..."
+                   class="block w-64 rounded-md border-gray-300 bg-gray-50 border p-2 text-sm focus:border-blue-500 focus:ring-blue-500 shadow-sm">
+        </div>
+    </div>
+
     <!-- 表格区域 -->
     <div class="glass-effect rounded-xl shadow-lg overflow-hidden border border-gray-100">
         <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
@@ -64,6 +95,7 @@
                     <th class="px-6 py-4 font-semibold">标的名称</th>
                     <th class="px-6 py-4 font-semibold">代码</th>
                     <th class="px-6 py-4 font-semibold text-center">类型</th>
+                    <th class="px-6 py-4 font-semibold text-center">操作</th>
                     <th class="px-6 py-4 font-semibold text-right">成交价格</th>
                     <th class="px-6 py-4 font-semibold text-right">数量</th>
                     <th class="px-6 py-4 font-semibold text-right">总金额</th>
