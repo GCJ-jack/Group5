@@ -2,6 +2,7 @@ package com.group5.backend.service;
 
 import com.group5.backend.model.PortfolioItem;
 import com.group5.backend.model.PortfolioResponse;
+import com.group5.backend.model.dto.PortfolioHistoryResponse;
 import com.group5.backend.model.dto.PortfolioGainerResponse;
 import com.group5.backend.model.dto.QuoteResponse;
 import com.group5.backend.repository.PortfolioRepository;
@@ -155,6 +156,25 @@ public class PortfolioService {
                         .reversed()
                         .thenComparing(Comparator.comparingDouble(PortfolioGainerResponse::profitLossAmount).reversed()))
                 .limit(Math.max(limit, 1))
+                .toList();
+    }
+
+    public List<PortfolioHistoryResponse> getHistory() {
+        return repository.findAll().stream()
+                .sorted(Comparator
+                        .comparing(PortfolioItem::getTime, Comparator.nullsLast(LocalDateTime::compareTo))
+                        .reversed()
+                        .thenComparing(PortfolioItem::getId, Comparator.nullsLast(Long::compareTo)).reversed())
+                .map(item -> new PortfolioHistoryResponse(
+                        item.getId(),
+                        finnhubService.getName(item.getTicker()),
+                        item.getTicker(),
+                        resolveType(item),
+                        item.getBuyPrice(),
+                        item.getQuantity(),
+                        item.getBuyPrice() * item.getQuantity(),
+                        item.getTime()
+                ))
                 .toList();
     }
 

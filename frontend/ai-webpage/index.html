@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APEXFINANCE - AI Investment Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap"
+        rel="stylesheet"
+    />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../styles/variables.css" />
+    <link rel="stylesheet" href="../styles/reset.css" />
+    <link rel="stylesheet" href="../styles/layout.css" />
+    <link rel="stylesheet" href="../styles/components.css" />
+    <link rel="stylesheet" href="../styles/main.css" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app-shell">
+    <header class="top-nav">
+        <div class="top-nav__brand-group">
+            <a href="../dashboard.html" class="top-nav__brand">APEXFINANCE</a>
+        </div>
+
+        <div class="top-nav__actions">
+            <button class="button button--surface ai-top-action" onclick="startNewChat()">
+                <span class="material-symbols-outlined">add_circle</span>
+                <span>New Chat</span>
+            </button>
+            <button class="button button--surface ai-top-action" onclick="exportChat()" title="Export chat history">
+                <span class="material-symbols-outlined">download</span>
+                <span>Export Chat</span>
+            </button>
+        </div>
+    </header>
+
+    <aside class="side-nav">
+        <div class="side-nav__brand-card">
+            <div class="side-nav__brand-icon">
+                <span class="material-symbols-outlined">architecture</span>
+            </div>
+            <div>
+                <h2>APEXFINANCE</h2>
+                <p>Wealth Management</p>
+            </div>
+        </div>
+
+        <nav class="side-nav__menu" aria-label="Primary">
+            <a href="../dashboard.html" class="side-nav__link">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="../portfolio2.html" class="side-nav__link">
+                <span class="material-symbols-outlined">pie_chart</span>
+                <span>Portfolio</span>
+            </a>
+            <a href="../following.html" class="side-nav__link">
+                <span class="material-symbols-outlined">bookmark</span>
+                <span>Following</span>
+            </a>
+            <a href="../history.html" class="side-nav__link">
+                <span class="material-symbols-outlined">history</span>
+                <span>History</span>
+            </a>
+            <a href="./index.html" class="side-nav__link side-nav__link--active">
+                <span class="material-symbols-outlined">smart_toy</span>
+                <span>AI Assistance</span>
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content ai-main-content">
+        <div class="page-wrap ai-page-wrap">
+            <section class="ai-chat-shell">
+                <div class="chat-header">
+                    <div class="chat-header-title">
+                        <h3>AI Investment Advisor</h3>
+                        <p>Providing intelligent analysis based on your portfolio</p>
+                    </div>
+                </div>
+
+                <div class="messages-container" id="messagesContainer">
+                    <div class="message assistant">
+                        <div class="message-avatar">AI</div>
+                        <div class="message-content">
+                            <div class="message-header">APEXFINANCE AI</div>
+                            <div class="message-text">
+                                <p>Hello! I am your intelligent investment advisor. I can help you with:</p>
+                                <ul>
+                                    <li>Analyze the performance and risks of your current portfolio</li>
+                                    <li>Provide asset allocation optimization suggestions</li>
+                                    <li>Interpret market trends and industry insights</li>
+                                    <li>Evaluate the investment value of stocks and funds</li>
+                                </ul>
+                                <p>You can ask questions directly, or click the "Analyze Recent Investments" button to get the latest portfolio insights.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-container">
+                    <div class="input-wrapper">
+                        <div class="input-box">
+                        <textarea
+                                id="messageInput"
+                                class="input-field"
+                                placeholder="Enter your question, or click the button on the right to analyze investments..."
+                                rows="1"
+                                oninput="autoResize(this)"
+                                onkeydown="handleKeyDown(event)"
+                        ></textarea>
+                            <div class="input-actions">
+                                <button class="send-btn" onclick="sendMessage()">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="input-hint">AI-generated content is for reference only and does not constitute investment advice</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

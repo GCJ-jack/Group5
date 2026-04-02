@@ -1,173 +1,133 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>历史交易记录</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-  <style>
-    body { background-color: #f0f2f5; }
-    .glass-effect {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-    }
-  </style>
-</head>
-<body class="text-gray-800">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>APEXFINANCE | History</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles/variables.css" />
+    <link rel="stylesheet" href="./styles/reset.css" />
+    <link rel="stylesheet" href="./styles/layout.css" />
+    <link rel="stylesheet" href="./styles/components.css" />
+    <link rel="stylesheet" href="./styles/main.css" />
+    <link rel="stylesheet" href="./styles/history.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="top-nav">
+        <div class="top-nav__brand-group">
+          <a href="./dashboard.html" class="top-nav__brand">APEXFINANCE</a>
+        </div>
 
-<!-- 顶部导航 -->
-<nav class="bg-white shadow-sm border-b border-gray-200">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex justify-between h-16">
-      <div class="flex items-center">
-        <i class="fas fa-chart-line text-blue-600 text-2xl mr-3"></i>
-        <span class="font-bold text-xl tracking-tight">投资交易看板</span>
-      </div>
-      <div class="flex items-center space-x-4">
-        <span class="text-sm text-gray-500">数据源: MySQL</span>
-        <button onclick="loadData()" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-          <i class="fas fa-sync-alt"></i> 刷新
-        </button>
-      </div>
+        <div class="top-nav__actions">
+          <button id="history-refresh-button" class="button button--surface" type="button">
+            <span class="material-symbols-outlined">sync</span>
+            <span>Refresh</span>
+          </button>
+        </div>
+      </header>
+
+      <aside class="side-nav">
+        <div class="side-nav__brand-card">
+          <div class="side-nav__brand-icon">
+            <span class="material-symbols-outlined">architecture</span>
+          </div>
+          <div>
+            <h2>APEXFINANCE</h2>
+            <p>Wealth Management</p>
+          </div>
+        </div>
+
+        <nav class="side-nav__menu" aria-label="Primary">
+          <a href="./dashboard.html" class="side-nav__link">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span>Dashboard</span>
+          </a>
+          <a href="./portfolio2.html" class="side-nav__link">
+            <span class="material-symbols-outlined">pie_chart</span>
+            <span>Portfolio</span>
+          </a>
+          <a href="./following.html" class="side-nav__link">
+            <span class="material-symbols-outlined">bookmark</span>
+            <span>Following</span>
+          </a>
+          <a href="./history.html" class="side-nav__link side-nav__link--active">
+            <span class="material-symbols-outlined">history</span>
+            <span>History</span>
+          </a>
+          <a href="./ai-webpage/index.html" class="side-nav__link">
+            <span class="material-symbols-outlined">smart_toy</span>
+            <span>AI Assistance</span>
+          </a>
+        </nav>
+      </aside>
+
+      <main class="main-content">
+        <div class="page-wrap history-page">
+          <section class="history-hero card">
+            <div>
+              <p class="eyebrow">Order History</p>
+              <h1>Review recorded portfolio activity in one timeline.</h1>
+              <p class="history-hero__description">
+                Track executed positions, scan total quantity and cost, and inspect each order entry
+                in a unified ledger view.
+              </p>
+            </div>
+
+            <div class="history-hero__meta">
+              <span>Source</span>
+              <strong id="history-last-updated">Waiting for first sync...</strong>
+            </div>
+          </section>
+
+          <section class="history-stats">
+            <article class="history-stat-card">
+              <span>Total Records</span>
+              <strong id="history-total-count">0</strong>
+            </article>
+            <article class="history-stat-card">
+              <span>Total Quantity</span>
+              <strong id="history-quantity-count">0</strong>
+            </article>
+          </section>
+
+          <section class="history-table-card card">
+            <div class="card__header history-table-card__header">
+              <div>
+                <h3>Recorded Orders</h3>
+                <p class="card__subtle">Synced from the backend portfolio history endpoint.</p>
+              </div>
+              <p id="history-state" class="history-state" hidden></p>
+            </div>
+
+            <div class="history-table-wrap">
+              <table class="history-table">
+                <thead>
+                  <tr>
+                    <th>Order Time</th>
+                    <th>Asset Name</th>
+                    <th>Symbol</th>
+                    <th>Type</th>
+                    <th>Quantity</th>
+                  </tr>
+                </thead>
+                <tbody id="history-table-body"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </main>
     </div>
-  </div>
-</nav>
 
-<!-- 主要内容 -->
-<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-
-  <!-- 统计卡片 -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <div class="glass-effect p-6 rounded-xl shadow-sm border border-gray-100">
-      <div class="text-gray-500 text-sm mb-1">总交易笔数</div>
-      <div class="text-3xl font-bold text-gray-800" id="totalCount">0</div>
-    </div>
-    <div class="glass-effect p-6 rounded-xl shadow-sm border border-gray-100">
-      <div class="text-gray-500 text-sm mb-1">买入次数</div>
-      <div class="text-3xl font-bold text-green-600" id="buyCount">0</div>
-    </div>
-    <div class="glass-effect p-6 rounded-xl shadow-sm border border-gray-100">
-      <div class="text-gray-500 text-sm mb-1">卖出次数</div>
-      <div class="text-3xl font-bold text-red-500" id="sellCount">0</div>
-    </div>
-  </div>
-
-  <!-- 表格区域 -->
-  <div class="glass-effect rounded-xl shadow-lg overflow-hidden border border-gray-100">
-    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-      <h3 class="font-bold text-lg text-gray-700">交易明细</h3>
-      <span class="text-xs text-gray-400 bg-white px-2 py-1 rounded border">实时更新</span>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="w-full text-left border-collapse">
-        <thead>
-        <tr class="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
-          <th class="px-6 py-4 font-semibold">交易时间</th>
-          <th class="px-6 py-4 font-semibold">标的名称</th>
-          <th class="px-6 py-4 font-semibold">代码</th>
-          <th class="px-6 py-4 font-semibold text-center">类型</th>
-          <th class="px-6 py-4 font-semibold text-right">成交价格</th>
-          <th class="px-6 py-4 font-semibold text-right">数量</th>
-          <th class="px-6 py-4 font-semibold text-right">总金额</th>
-        </tr>
-        </thead>
-        <tbody id="recordTableBody" class="text-sm divide-y divide-gray-100">
-        <!-- 数据将通过 JS 插入这里 -->
-        </tbody>
-      </table>
-    </div>
-    <!-- 空状态提示 -->
-    <div id="emptyState" class="hidden p-10 text-center text-gray-400">
-      <i class="fas fa-inbox text-4xl mb-3"></i>
-      <p>暂无交易记录</p>
-    </div>
-  </div>
-</main>
-
-<script>
-  const API_URL = 'http://localhost:8080/api/records';
-
-  // 页面加载时执行
-  document.addEventListener('DOMContentLoaded', loadData);
-
-  async function loadData() {
-    const tbody = document.getElementById('recordTableBody');
-    const emptyState = document.getElementById('emptyState');
-
-    // 显示加载状态
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i>加载中...</td></tr>';
-
-    try {
-      const response = await fetch(API_URL);
-      const data = await response.json();
-
-      // 重置表格
-      tbody.innerHTML = '';
-
-      if (data.length === 0) {
-        emptyState.classList.remove('hidden');
-        updateStats(0, 0, 0);
-        return;
-      } else {
-        emptyState.classList.add('hidden');
-      }
-
-      let buyCount = 0;
-      let sellCount = 0;
-
-      // 遍历数据生成表格行
-      data.forEach(record => {
-        const row = document.createElement('tr');
-        row.className = 'hover:bg-blue-50 transition-colors duration-150';
-
-        // 格式化时间
-        const date = new Date(record.orderTime);
-        const timeStr = date.toLocaleString('zh-CN', { hour12: false });
-
-        // 根据类型设置样式
-        const type = record.type.toUpperCase();
-        let typeBadge = '';
-
-        if (type.includes('BUY')) {
-          typeBadge = '<span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700"><i class="fas fa-arrow-down mr-1"></i>买入</span>';
-          buyCount++;
-        } else if (type.includes('SELL')) {
-          typeBadge = '<span class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700"><i class="fas fa-arrow-up mr-1"></i>卖出</span>';
-          sellCount++;
-        } else {
-          typeBadge = '<span class="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600">' + type + '</span>';
-        }
-
-        row.innerHTML = `
-                        <td class="px-6 py-4 text-gray-600 whitespace-nowrap">${timeStr}</td>
-                        <td class="px-6 py-4 font-medium text-gray-900">${record.stockName}</td>
-                        <td class="px-6 py-4 text-gray-500 font-mono">${record.symbol}</td>
-                        <td class="px-6 py-4 text-center">${typeBadge}</td>
-                        <td class="px-6 py-4 text-right font-mono text-gray-700">¥${formatNumber(record.price)}</td>
-                        <td class="px-6 py-4 text-right font-mono text-gray-700">${record.quantity}</td>
-                        <td class="px-6 py-4 text-right font-bold font-mono text-blue-600">¥${formatNumber(record.totalAmount)}</td>
-                    `;
-        tbody.appendChild(row);
-      });
-
-      updateStats(data.length, buyCount, sellCount);
-
-    } catch (error) {
-      console.error('Error:', error);
-      tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-red-500"><i class="fas fa-exclamation-circle mr-2"></i>加载失败，请检查后端服务</td></tr>';
-    }
-  }
-
-  function updateStats(total, buy, sell) {
-    document.getElementById('totalCount').innerText = total;
-    document.getElementById('buyCount').innerText = buy;
-    document.getElementById('sellCount').innerText = sell;
-  }
-
-  function formatNumber(num) {
-    return parseFloat(num).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-  }
-</script>
-</body>
+    <script src="./scripts/history.js"></script>
+  </body>
 </html>

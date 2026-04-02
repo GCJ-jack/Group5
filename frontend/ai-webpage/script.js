@@ -160,7 +160,7 @@ function addMessage(content, sender, isHTML = false) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${sender}`;
     const avatarText = sender === 'user' ? 'Me' : 'AI';
-    const headerText = sender === 'user' ? 'You' : 'The Atelier AI';
+    const headerText = sender === 'user' ? 'You' : 'APEXFINANCE AI';
 
     // If not HTML, first parse Markdown tables
     let formattedContent;
@@ -206,7 +206,7 @@ function showTypingIndicator() {
     const typingDiv = document.createElement('div');
     typingDiv.className = 'message assistant';
     typingDiv.id = 'typingIndicator';
-    typingDiv.innerHTML = `<div class="message-avatar">AI</div><div class="message-content"><div class="message-header">The Atelier AI</div><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
+    typingDiv.innerHTML = `<div class="message-avatar">AI</div><div class="message-content"><div class="message-header">APEXFINANCE AI</div><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
     messagesContainer.appendChild(typingDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
@@ -222,7 +222,7 @@ function typeMessage(content, sender) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${sender}`;
     const avatarText = sender === 'user' ? 'Me' : 'AI';
-    const headerText = sender === 'user' ? 'You' : 'The Atelier AI';
+    const headerText = sender === 'user' ? 'You' : 'APEXFINANCE AI';
 
     messageDiv.innerHTML = `
         <div class="message-avatar">${avatarText}</div>
@@ -283,7 +283,7 @@ function typeMessage(content, sender) {
 }
 
 function startNewChat() {
-    messagesContainer.innerHTML = `<div class="message assistant"><div class="message-avatar">AI</div><div class="message-content"><div class="message-header">The Atelier AI</div><div class="message-text"><p>New chat started! How can I help you?</p></div></div></div>`;
+    messagesContainer.innerHTML = `<div class="message assistant"><div class="message-avatar">AI</div><div class="message-content"><div class="message-header">APEXFINANCE AI</div><div class="message-text"><p>New chat started! How can I help you?</p></div></div></div>`;
 }
 
 function replaceDatePlaceholder() {
@@ -316,7 +316,7 @@ function exportChat() {
 
     // Build export content
     let exportContent = '═══════════════════════════════════════\n';
-    exportContent += '    The Atelier AI - Chat History\n';
+    exportContent += '    APEXFINANCE AI - Chat History\n';
     exportContent += '═══════════════════════════════════════\n\n';
     exportContent += `Export Time: ${new Date().toLocaleString('en-US')}\n`;
     exportContent += `Number of Messages: ${messages.length}\n`;
@@ -327,7 +327,7 @@ function exportChat() {
         const isUser = msg.classList.contains('user');
         const isAssistant = msg.classList.contains('assistant');
 
-        const sender = isUser ? 'You' : (isAssistant ? 'The Atelier AI' : 'Unknown');
+        const sender = isUser ? 'You' : (isAssistant ? 'APEXFINANCE AI' : 'Unknown');
         const content = msg.querySelector('.message-text')?.textContent?.trim() || '';
 
         exportContent += `[${index + 1}] ${sender}\n`;
@@ -336,7 +336,7 @@ function exportChat() {
     });
 
     exportContent += '\n═══════════════════════════════════════\n';
-    exportContent += '    Thank you for using The Atelier AI Investment Advisor\n';
+    exportContent += '    Thank you for using APEXFINANCE AI Investment Advisor\n';
     exportContent += '═══════════════════════════════════════\n';
 
     // Create Blob and download
