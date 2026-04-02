@@ -1,6 +1,7 @@
 package com.group5.backend.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.group5.backend.model.dto.FinnhubNewsItem;
 import com.group5.backend.model.dto.QuoteResponse;
 import com.group5.backend.model.dto.SearchResultDto;
@@ -11,6 +12,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,6 +35,35 @@ public class FinnhubService {
     public FinnhubService(RestClient finnhubRestClient, @Value("${finnhub.api.token}") String apiToken) {
         this.finnhubRestClient = finnhubRestClient;
         this.apiToken = apiToken;
+    }
+
+    // 批量获取价格
+    public Map<String, BigDecimal> getBatchPrices(List<String> symbols) {
+        Map<String, BigDecimal> priceMap = new HashMap<>();
+        for (String symbol : symbols) {
+            try {
+                BigDecimal price = getStockPrice(symbol);
+                priceMap.put(symbol, price);
+            } catch (Exception e) {
+                // 记录错误，但不中断循环
+                System.err.println("获取价格失败: " + symbol);
+            }
+        }
+        return priceMap;
+    }
+
+    // 获取单个股票价格（复用原有逻辑）
+    public BigDecimal getStockPrice(String symbol) {
+        String url = "/quote?symbol=" + symbol;
+        JsonNode response = finnhubRestClient.get()
+                .uri(url)
+                .retrieve()
+                .body(JsonNode.class);
+
+        if (response != null && response.get("c") != null) {
+            return new BigDecimal(response.get("c").asText());
+        }
+        return BigDecimal.ZERO;
     }
 
     /**
@@ -109,6 +144,84 @@ public class FinnhubService {
                     return map;
                 })
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 获取带价格的股票列表
+     * ⭐ 修改点：增加了延时和更严格的错误处理
+     */
+    public List<ObjectNode> getStockListWithPrices() {
+        List<ObjectNode> finalList = new ArrayList<>();
+
+        try {
+            // 1. 获取静态列表
+            String listUrl = "https://finnhub.io/api/v1/stock/symbol?exchange=US&token=" + apiToken;
+            JsonNode rawList = finnhubRestClient.get().uri(listUrl).retrieve().body(JsonNode.class);
+
+            if (rawList != null && rawList.isArray()) {
+                int limit = 50; // ⭐ 建议先改为 50 测试速度，避免等待太久
+                int count = 0;
+
+                System.out.println("开始获取股票价格...");
+
+                for (JsonNode node : rawList) {
+                    if (count >= limit) break;
+
+                    // 过滤 Common Stock
+                    String type = node.has("type") ? node.get("type").asText() : "";
+                    if (!"Common Stock".equals(type)) continue;
+
+                    String symbol = node.has("symbol") ? node.get("symbol").asText() : "";
+                    if (symbol.isEmpty()) continue;
+
+                    // 2. 获取价格 (带延时防止限流)
+                    try {
+                        // ⭐ 关键：每次请求间隔 200ms，防止 Finnhub 429 错误
+                        Thread.sleep(200);
+
+                        String quoteUrl = "https://finnhub.io/api/v1/quote?symbol=" + symbol + "&token=" + apiToken;
+                        JsonNode quote = finnhubRestClient.get().uri(quoteUrl).retrieve().body(JsonNode.class);
+
+                        // 3. 解析价格
+                        if (quote != null && quote.has("c")) {
+                            double price = quote.get("c").asDouble();
+
+                            // 只有价格大于 0 才加入列表（过滤掉无效数据）
+                            if (price > 0) {
+                                if (node instanceof ObjectNode) {
+                                    ObjectNode mutableNode = (ObjectNode) node;
+                                    mutableNode.put("currentPrice", price);
+
+                                    // 处理时间
+                                    if (quote.has("t")) {
+                                        long ts = quote.get("t").asLong();
+                                        LocalDateTime time = LocalDateTime.ofInstant(
+                                                Instant.ofEpochSecond(ts),
+                                                ZoneId.systemDefault()
+                                        );
+                                        mutableNode.put("updateTime", time.toString());
+                                    }
+                                    finalList.add(mutableNode);
+                                    count++;
+
+                                    // 每处理 10 个打印一次进度
+                                    if (count % 10 == 0) {
+                                        System.out.println("已处理: " + count + " 个股票...");
+                                    }
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.err.println("获取 " + symbol + " 价格失败: " + e.getMessage());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("价格获取完成，共返回 " + finalList.size() + " 条有效数据。");
+        return finalList;
     }
 
     /**

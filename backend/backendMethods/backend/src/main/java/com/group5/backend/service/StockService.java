@@ -1,10 +1,13 @@
 package com.group5.backend.service;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.group5.backend.model.entity.StockAll;
 import com.group5.backend.repository.StockRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.client.RestTemplate;
+import com.group5.backend.service.FinnhubService;
 
 import java.util.Arrays;
 import java.util.List;
@@ -59,5 +62,11 @@ public class StockService {
      */
     public List<StockAll> getAllSavedStocks() {
         return stockRepository.findAll();
+    }
+
+    // 统一接口：返回带价格的列表
+    @GetMapping("/symbols/all")
+    public List<ObjectNode> getAllSymbols() {
+        return FinnhubService.getStockListWithPrices();
     }
 }

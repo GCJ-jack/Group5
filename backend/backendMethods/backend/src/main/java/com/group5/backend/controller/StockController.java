@@ -5,6 +5,7 @@ import com.group5.backend.service.StockService;
 import org.springframework.web.bind.annotation.*;
 import com.group5.backend.service.FinnhubService;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,4 +58,22 @@ public class StockController {
     public Map<String, Object> getQuote(@RequestParam String symbol) {
         return finnhubService.getRealTimePrice(symbol);
     }
+
+    // 批量获取价格
+//    @PostMapping("/batch")
+//    public Map<String, BigDecimal> getBatchPrices(@RequestBody List<String> symbols) {
+//        return finnhubService.getBatchPrices(symbols);
+//    }
+
+//    @Autowired
+//    private FinnhubService finnhubService;
+
+    // 统一接口：返回带价格的列表
+//    @GetMapping("/symbols/all")
+//    public List<ObjectNode> getAllSymbols() {
+//        return finnhubService.getStockListWithPrices();
+//    }
+//}
+
+
 }

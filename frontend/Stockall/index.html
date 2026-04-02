@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Stock Market List</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { padding: 20px; background-color: #f8f9fa; }
+    .price-col { font-weight: bold; color: #28a745; }
+    .time-col { font-size: 0.85rem; color: #6c757d; }
+    #loading { margin-top: 20px; text-align: center; color: #007bff; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2 class="mb-4">US Stock Market (Top 100)</h2>
+
+  <!-- 1. 股票列表表格 -->
+  <table class="table table-striped table-hover bg-white shadow-sm rounded">
+    <thead class="table-dark">
+    <tr>
+      <th>#</th>
+      <th>Symbol</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Price</th>
+      <th>Time</th>
+      <th>Action</th>
+    </tr>
+    </thead>
+    <tbody id="stockBody">
+    <!-- Data will be injected here -->
+    </tbody>
+  </table>
+
+  <!-- 分页控件 -->
+  <nav class="d-flex justify-content-center mt-4">
+    <ul class="pagination">
+      <li class="page-item" id="prevBtn">
+        <a class="page-link" href="#" onclick="changePage(-1)">Previous</a>
+      </li>
+      <li class="page-item disabled"><a class="page-link">Page <span id="pageNum">1</span></a></li>
+      <li class="page-item" id="nextBtn">
+        <a class="page-link" href="#" onclick="changePage(1)">Next</a>
+      </li>
+    </ul>
+  </nav>
+
+  <div id="loading">Loading data, please wait...</div>
+</div>
+
+<!-- 2. 购买弹窗 (Modal) HTML结构 -->
+<div class="modal fade" id="tradeModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalSymbol">Buy Stock</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="tradeForm">
+          <div class="mb-3">
+            <label class="form-label">Symbol</label>
+            <input type="text" id="inputSymbol" class="form-control" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Name</label>
+            <input type="text" id="inputName" class="form-control" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Current Price</label>
+            <input type="text" id="inputPrice" class="form-control" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Quantity</label>
+            <input type="number" id="inputQty" class="form-control" value="1" min="1" oninput="calcTotal()">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Total Cost</label>
+            <input type="text" id="inputTotal" class="form-control" readonly>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="confirmBuy()">Confirm Buy</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // === 全局变量 ===
+  let allStockData = [];
+  let currentPage = 1;
+  let currentStockInfo = {}; // 用于暂存当前点击的股票信息
+  const pageSize = 20;
+
+  // === 1. 初始化 ===
+  document.addEventListener('DOMContentLoaded', () => {
+    loadData();
+  });
+
+  // === 2. 加载数据 ===
+  function loadData() {
+    fetch('http://localhost:8081/api/symbols/all')
+            .then(res => res.json())
+            .then(data => {
+              allStockData = data;
+              document.getElementById('loading').innerText = `Loaded ${data.length} stocks successfully`;
+              renderPage();
+            })
+            .catch(err => {
+              document.getElementById('loading').innerText = "Failed to load data.";
+              console.error(err);
+            });
+  }
+
+  // === 3. 渲染表格 ===
+  function renderPage() {
+    const tbody = document.getElementById('stockBody');
+    tbody.innerHTML = '';
+
+    const start = (currentPage - 1) * pageSize;
+    const end = start + pageSize;
+    const pageData = allStockData.slice(start, end);
+
+    if (pageData.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center">No Data</td></tr>';
+      return;
+    }
+
+    pageData.forEach((stock, index) => {
+      const symbol = stock.displaySymbol || stock.symbol || 'N/A';
+      const desc = stock.description || 'N/A';
+      const type = stock.type || 'N/A';
+      const price = stock.currentPrice ? stock.currentPrice.toFixed(2) : '0.00';
+      const time = stock.updateTime ? stock.updateTime.replace('T', ' ') : '-';
+
+      const row = `
+                <tr>
+                    <td>${start + index + 1}</td>
+                    <td>${symbol}</td>
+                    <td>${desc}</td>
+                    <td>${type}</td>
+                    <td class="price-col">$${price}</td>
+                    <td class="time-col">${time}</td>
+                    <td>
+                        <!-- ⭐ 修改点：传递完整的 stock 对象给弹窗函数 -->
+                        <button class="btn btn-sm btn-primary" onclick='openTradeModal(${JSON.stringify(stock)})'>Buy</button>
+                    </td>
+                </tr>
+            `;
+      tbody.innerHTML += row;
+    });
+
+    // 更新分页按钮状态
+    const hasNext = end < allStockData.length;
+    const hasPrev = currentPage > 1;
+    document.getElementById('prevBtn').className = hasPrev ? 'page-item' : 'page-item disabled';
+    document.getElementById('nextBtn').className = hasNext ? 'page-item' : 'page-item disabled';
+    document.getElementById('pageNum').innerText = currentPage;
+  }
+
+  function changePage(direction) {
+    currentPage += direction;
+    renderPage();
+    window.scrollTo(0, 0);
+  }
+
+  // === 4. 打开弹窗 (⭐ 核心修改) ===
+  function openTradeModal(stock) {
+    currentStockInfo = stock; // 保存当前股票信息
+
+    // 填充弹窗数据
+    const symbol = stock.displaySymbol || stock.symbol;
+    document.getElementById('modalSymbol').innerText = "Buy " + symbol;
+    document.getElementById('inputSymbol').value = symbol;
+    document.getElementById('inputName').value = stock.description;
+
+    const price = stock.currentPrice || 0;
+    document.getElementById('inputPrice').value = "$" + price.toFixed(2);
+
+    document.getElementById('inputQty').value = 1;
+    calcTotal(); // 初始化总价
+
+    // 显示弹窗 (使用 Bootstrap 5 原生方法)
+    const modalElement = document.getElementById('tradeModal');
+    const modalInstance = new bootstrap.Modal(modalElement);
+    modalInstance.show();
+  }
+
+  // === 5. 计算总价 ===
+  function calcTotal() {
+    const price = currentStockInfo.currentPrice || 0;
+    const qty = document.getElementById('inputQty').value;
+    const total = (price * qty).toFixed(2);
+    document.getElementById('inputTotal').value = "$" + total;
+  }
+
+  // === 6. 确认购买 (提交到后端) ===
+  function confirmBuy() {
+    const qty = document.getElementById('inputQty').value;
+    const price = currentStockInfo.currentPrice;
+    const symbol = currentStockInfo.displaySymbol || currentStockInfo.symbol;
+    const name = currentStockInfo.description;
+
+    const tradeData = {
+      symbol: symbol,
+      stockName: name,
+      price: price,
+      quantity: parseInt(qty)
+    };
+
+    fetch('http://localhost:8081/api/trade/buy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(tradeData)
+    })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                alert('Purchase Successful!');
+                // 关闭弹窗
+                const modalElement = document.getElementById('tradeModal');
+                const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                modalInstance.hide();
+              } else {
+                alert('Purchase Failed: ' + data.message);
+              }
+            })
+            .catch(error => {
+              alert('Network Error');
+              console.error(error);
+            });
+  }
+</script>
+
+</body>
+</html>
