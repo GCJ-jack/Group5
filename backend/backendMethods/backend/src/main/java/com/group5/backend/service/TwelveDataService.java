@@ -2,6 +2,7 @@ package com.group5.backend.service;
 
 import com.group5.backend.model.dto.CandlePointResponse;
 import com.group5.backend.model.dto.MarketCandleResponse;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -10,11 +11,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDate;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -23,16 +20,16 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @Service
-public class AlphaVantageService {
+public class TwelveDataService {
 
-    private final RestClient alphaVantageRestClient;
+    private final RestClient twelveDataRestClient;
     private final String apiKey;
 
-    public AlphaVantageService(
-            @Value("${alphavantage.api.base-url}") String baseUrl,
-            @Value("${alphavantage.api.key}") String apiKey
+    public TwelveDataService(
+            @Value("${twelvedata.api.base-url}") String baseUrl,
+            @Value("${twelvedata.api.key}") String apiKey
     ) {
-        this.alphaVantageRestClient = RestClient.builder()
+        this.twelveDataRestClient = RestClient.builder()
                 .baseUrl(baseUrl)
                 .build();
         this.apiKey = apiKey;
@@ -44,30 +41,29 @@ public class AlphaVantageService {
         String normalizedSymbol = normalizeSymbol(symbol);
         String normalizedRange = normalizeRange(range);
         String normalizedInterval = normalizeInterval(interval);
-        LocalDate fromDate = calculateFromDate(normalizedRange);
 
         try {
-            String response = alphaVantageRestClient.get()
+            String response = twelveDataRestClient.get()
                     .uri(uriBuilder -> uriBuilder
-                            .path("/query")
-                            .queryParam("function", toFunction(normalizedInterval))
+                            .path("/time_series")
                             .queryParam("symbol", normalizedSymbol)
+                            .queryParam("interval", toTwelveDataInterval(normalizedInterval))
+                            .queryParam("outputsize", outputSizeFor(normalizedRange, normalizedInterval))
+                            .queryParam("order", "asc")
+                            .queryParam("format", "JSON")
                             .queryParam("apikey", apiKey)
-                            .queryParamIfPresent("outputsize", dailyOutputSize(normalizedInterval, normalizedRange))
                             .build())
                     .retrieve()
                     .body(String.class);
 
             JSONObject json = new JSONObject(response);
-            throwIfAlphaVantageError(json);
-
-            List<CandlePointResponse> candles = parseCandles(json, normalizedInterval, fromDate);
+            throwIfTwelveDataError(json);
 
             return new MarketCandleResponse(
                     normalizedSymbol,
                     normalizedRange,
                     normalizedInterval,
-                    candles
+                    parseCandles(json)
             );
         } catch (RestClientResponseException e) {
             throw new ResponseStatusException(e.getStatusCode(), extractErrorMessage(e.getResponseBodyAsString()), e);
@@ -76,7 +72,7 @@ public class AlphaVantageService {
         } catch (Exception e) {
             throw new ResponseStatusException(
                     BAD_GATEWAY,
-                    "Failed to load candle data from Alpha Vantage for symbol: " + normalizedSymbol,
+                    "Failed to load candle data from Twelve Data for symbol: " + normalizedSymbol,
                     e
             );
         }
@@ -86,7 +82,7 @@ public class AlphaVantageService {
         if (!StringUtils.hasText(apiKey)) {
             throw new ResponseStatusException(
                     INTERNAL_SERVER_ERROR,
-                    "ALPHAVANTAGE_API_KEY is not configured"
+                    "TWELVE_DATA_API_KEY is not configured"
             );
         }
     }
@@ -125,87 +121,91 @@ public class AlphaVantageService {
         };
     }
 
-    private String toFunction(String interval) {
+    private String toTwelveDataInterval(String interval) {
         return switch (interval) {
-            case "DAILY" -> "TIME_SERIES_DAILY";
-            case "WEEKLY" -> "TIME_SERIES_WEEKLY";
-            case "MONTHLY" -> "TIME_SERIES_MONTHLY";
+            case "DAILY" -> "1day";
+            case "WEEKLY" -> "1week";
+            case "MONTHLY" -> "1month";
             default -> throw new ResponseStatusException(BAD_REQUEST, "Unsupported interval: " + interval);
         };
     }
 
-    private String toSeriesKey(String interval) {
+    private int outputSizeFor(String range, String interval) {
         return switch (interval) {
-            case "DAILY" -> "Time Series (Daily)";
-            case "WEEKLY" -> "Weekly Time Series";
-            case "MONTHLY" -> "Monthly Time Series";
+            case "DAILY" -> switch (range) {
+                case "5d" -> 5;
+                case "1mo" -> 30;
+                case "3mo" -> 90;
+                case "6mo" -> 180;
+                case "1y" -> 365;
+                case "2y" -> 730;
+                case "5y" -> 1825;
+                case "10y" -> 3650;
+                case "max" -> 5000;
+                default -> 30;
+            };
+            case "WEEKLY" -> switch (range) {
+                case "5d", "1mo" -> 8;
+                case "3mo" -> 16;
+                case "6mo" -> 32;
+                case "1y" -> 56;
+                case "2y" -> 108;
+                case "5y" -> 264;
+                case "10y" -> 520;
+                case "max" -> 1000;
+                default -> 56;
+            };
+            case "MONTHLY" -> switch (range) {
+                case "5d", "1mo" -> 3;
+                case "3mo" -> 6;
+                case "6mo" -> 9;
+                case "1y" -> 14;
+                case "2y" -> 26;
+                case "5y" -> 62;
+                case "10y" -> 122;
+                case "max" -> 300;
+                default -> 14;
+            };
             default -> throw new ResponseStatusException(BAD_REQUEST, "Unsupported interval: " + interval);
         };
     }
 
-    private java.util.Optional<String> dailyOutputSize(String interval, String range) {
-        if (!"DAILY".equals(interval)) {
-            return java.util.Optional.empty();
-        }
-
-        return java.util.Optional.of("compact");
-    }
-
-    private LocalDate calculateFromDate(String range) {
-        LocalDate today = ZonedDateTime.now(ZoneOffset.UTC).toLocalDate();
-        return switch (range) {
-            case "5d" -> today.minusDays(5);
-            case "1mo" -> today.minusMonths(1);
-            case "3mo" -> today.minusMonths(3);
-            case "6mo" -> today.minusMonths(6);
-            case "1y" -> today.minusYears(1);
-            case "2y" -> today.minusYears(2);
-            case "5y" -> today.minusYears(5);
-            case "10y" -> today.minusYears(10);
-            case "max" -> LocalDate.of(1900, 1, 1);
-            default -> throw new ResponseStatusException(BAD_REQUEST, "Unsupported range: " + range);
-        };
-    }
-
-    private void throwIfAlphaVantageError(JSONObject json) {
-        if (json.has("Error Message")) {
-            throw new ResponseStatusException(BAD_GATEWAY, json.optString("Error Message"));
-        }
-
-        if (json.has("Information")) {
-            throw new ResponseStatusException(BAD_GATEWAY, json.optString("Information"));
-        }
-
-        if (json.has("Note")) {
-            throw new ResponseStatusException(BAD_GATEWAY, json.optString("Note"));
+    private void throwIfTwelveDataError(JSONObject json) {
+        if ("error".equalsIgnoreCase(json.optString("status"))) {
+            String message = json.optString("message");
+            if (!StringUtils.hasText(message)) {
+                message = json.optString("code", "Twelve Data request failed");
+            }
+            throw new ResponseStatusException(BAD_GATEWAY, message);
         }
     }
 
-    private List<CandlePointResponse> parseCandles(JSONObject json, String interval, LocalDate fromDate) {
-        String seriesKey = toSeriesKey(interval);
-        JSONObject series = json.optJSONObject(seriesKey);
-
-        if (series == null || series.isEmpty()) {
-            throw new ResponseStatusException(BAD_GATEWAY, "Alpha Vantage response is missing time series data");
+    private List<CandlePointResponse> parseCandles(JSONObject json) {
+        JSONArray values = json.optJSONArray("values");
+        if (values == null) {
+            throw new ResponseStatusException(BAD_GATEWAY, "Twelve Data response is missing values");
         }
 
-        List<CandlePointResponse> candles = new ArrayList<>();
+        List<CandlePointResponse> candles = new ArrayList<>(values.length());
 
-        for (String dateKey : series.keySet()) {
-            LocalDate candleDate = LocalDate.parse(dateKey);
-            if (candleDate.isBefore(fromDate)) {
+        for (int i = 0; i < values.length(); i++) {
+            JSONObject point = values.getJSONObject(i);
+            String datetime = point.optString("datetime", null);
+
+            if (!StringUtils.hasText(datetime)) {
                 continue;
             }
 
-            JSONObject point = series.getJSONObject(dateKey);
-            double open = parseDouble(point, "1. open");
-            double high = parseDouble(point, "2. high");
-            double low = parseDouble(point, "3. low");
-            double close = parseDouble(point, "4. close");
-            long volume = parseLong(point, "5. volume");
+            double open = parseDouble(point, "open");
+            double high = parseDouble(point, "high");
+            double low = parseDouble(point, "low");
+            double close = parseDouble(point, "close");
+            long volume = parseLong(point, "volume");
 
             candles.add(new CandlePointResponse(
-                    candleDate.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli(),
+                    java.time.LocalDateTime.parse(normalizeDateTime(datetime))
+                            .toInstant(java.time.ZoneOffset.UTC)
+                            .toEpochMilli(),
                     open,
                     high,
                     low,
@@ -215,14 +215,20 @@ public class AlphaVantageService {
             ));
         }
 
-        candles.sort(Comparator.comparingLong(CandlePointResponse::timestamp));
         return candles;
+    }
+
+    private String normalizeDateTime(String datetime) {
+        if (datetime.length() == 10) {
+            return datetime + "T00:00:00";
+        }
+        return datetime.replace(" ", "T");
     }
 
     private double parseDouble(JSONObject json, String key) {
         String raw = json.optString(key, null);
         if (!StringUtils.hasText(raw)) {
-            throw new ResponseStatusException(BAD_GATEWAY, "Alpha Vantage candle data is missing " + key);
+            throw new ResponseStatusException(BAD_GATEWAY, "Twelve Data candle data is missing " + key);
         }
         return Double.parseDouble(raw);
     }
@@ -237,19 +243,16 @@ public class AlphaVantageService {
 
     private String extractErrorMessage(String responseBody) {
         if (!StringUtils.hasText(responseBody)) {
-            return "Alpha Vantage request failed";
+            return "Twelve Data request failed";
         }
 
         try {
             JSONObject json = new JSONObject(responseBody);
-            if (json.has("Error Message")) {
-                return json.optString("Error Message");
-            }
-            if (json.has("Information")) {
-                return json.optString("Information");
-            }
-            if (json.has("Note")) {
-                return json.optString("Note");
+            if ("error".equalsIgnoreCase(json.optString("status"))) {
+                String message = json.optString("message");
+                if (StringUtils.hasText(message)) {
+                    return message;
+                }
             }
         } catch (Exception ignored) {
             return responseBody;

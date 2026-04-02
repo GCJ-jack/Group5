@@ -48,6 +48,17 @@ function normalizeSearchValue(value) {
   return String(value || "").trim().toUpperCase();
 }
 
+function getDisplayName(item) {
+  const companyName = String(item?.name || "").trim();
+
+  if (companyName) {
+    return companyName;
+  }
+
+  const ticker = String(item?.ticker || "").trim().toUpperCase();
+  return ticker || "Unknown Asset";
+}
+
 function formatTime(time) {
   if (!time) {
     return "-";
@@ -125,7 +136,7 @@ function getVisibleItems() {
   const keyword = searchInput.value.trim().toLowerCase();
   const filteredItems = keyword
     ? portfolioItems.filter((item) =>
-        [item.name, item.ticker, item.type]
+        [getDisplayName(item), item.ticker, item.type]
           .filter(Boolean)
           .some((value) => value.toLowerCase().includes(keyword)),
       )
@@ -270,9 +281,9 @@ function renderRows(items) {
     .map(
       (item) => `
         <tr>
-          <td>${item.name}</td>
-          <td>${item.ticker}</td>
-          <td>${item.type}</td>
+          <td>${escapeHtml(getDisplayName(item))}</td>
+          <td>${escapeHtml(item.ticker || "-")}</td>
+          <td>${escapeHtml(item.type || "-")}</td>
           <td>${item.quantity}</td>
           <td>${formatMoney(item.price)}</td>
           <td>${formatTime(item.time)}</td>

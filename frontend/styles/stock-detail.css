@@ -42,6 +42,29 @@
   font-size: 1rem;
 }
 
+.stock-hero__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+}
+
+.stock-follow-state {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.stock-follow-state--success {
+  color: #0a7f55;
+}
+
+.stock-follow-state--error {
+  color: #cb3a31;
+}
+
 .stock-hero__stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(10rem, 1fr));

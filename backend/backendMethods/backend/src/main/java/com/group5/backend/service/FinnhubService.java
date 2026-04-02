@@ -1,5 +1,6 @@
 package com.group5.backend.service;
 
+import com.group5.backend.model.dto.CompanyProfileResponse;
 import com.group5.backend.model.dto.FinnhubNewsItem;
 import com.group5.backend.model.dto.QuoteResponse;
 import com.group5.backend.model.dto.SearchResultDto;
@@ -7,11 +8,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.*;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 @Service
 public class FinnhubService {
@@ -107,6 +110,9 @@ public class FinnhubService {
 
             return current;
 
+        } catch (RestClientResponseException e) {
+            System.out.println("Finnhub price request forbidden for ticker: " + ticker + " (" + e.getStatusCode() + ")");
+            return 0.0;
         } catch (Exception e) {
             System.out.println("Finnhub price error: " + ticker);
             e.printStackTrace();
@@ -140,8 +146,79 @@ public class FinnhubService {
 
             return name;
 
+        } catch (RestClientResponseException e) {
+            return ticker;
         } catch (Exception e) {
             return ticker;
+        }
+    }
+
+    public CompanyProfileResponse getCompanyProfile(String symbol, String isin, String cusip) {
+        validateToken();
+
+        boolean hasSymbol = StringUtils.hasText(symbol);
+        boolean hasIsin = StringUtils.hasText(isin);
+        boolean hasCusip = StringUtils.hasText(cusip);
+
+        if (!hasSymbol && !hasIsin && !hasCusip) {
+            throw new ResponseStatusException(
+                    BAD_REQUEST,
+                    "one of symbol, isin or cusip is required"
+            );
+        }
+
+        try {
+            String response = finnhubRestClient.get()
+                    .uri(uriBuilder -> {
+                        var builder = uriBuilder
+                                .path("/stock/profile2")
+                                .queryParam("token", apiToken);
+
+                        if (hasSymbol) {
+                            builder.queryParam("symbol", symbol.trim().toUpperCase(Locale.ROOT));
+                        }
+                        if (hasIsin) {
+                            builder.queryParam("isin", isin.trim().toUpperCase(Locale.ROOT));
+                        }
+                        if (hasCusip) {
+                            builder.queryParam("cusip", cusip.trim().toUpperCase(Locale.ROOT));
+                        }
+
+                        return builder.build();
+                    })
+                    .retrieve()
+                    .body(String.class);
+
+            org.json.JSONObject json = new org.json.JSONObject(response);
+
+            return new CompanyProfileResponse(
+                    json.optString("country", ""),
+                    json.optString("currency", ""),
+                    json.optString("exchange", ""),
+                    json.optString("finnhubIndustry", ""),
+                    json.optString("ipo", ""),
+                    json.optString("logo", ""),
+                    readNullableBoxedDouble(json, "marketCapitalization"),
+                    json.optString("name", ""),
+                    json.optString("phone", ""),
+                    readNullableBoxedDouble(json, "shareOutstanding"),
+                    json.optString("ticker", ""),
+                    json.optString("weburl", "")
+            );
+        } catch (RestClientResponseException e) {
+            throw new ResponseStatusException(
+                    e.getStatusCode(),
+                    "failed to fetch company profile from Finnhub",
+                    e
+            );
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ResponseStatusException(
+                    INTERNAL_SERVER_ERROR,
+                    "failed to parse company profile response",
+                    e
+            );
         }
     }
 
@@ -212,15 +289,18 @@ public class FinnhubService {
 
             return new QuoteResponse(
                     symbol, // 先用 symbol 当 name
-                    json.getDouble("c"),
-                    json.getDouble("d"),
-                    json.getDouble("dp"),
-                    json.getDouble("h"),
-                    json.getDouble("l"),
-                    json.getDouble("o"),
-                    json.getDouble("pc")
+                    readNullableDouble(json, "c"),
+                    readNullableDouble(json, "d"),
+                    readNullableDouble(json, "dp"),
+                    readNullableDouble(json, "h"),
+                    readNullableDouble(json, "l"),
+                    readNullableDouble(json, "o"),
+                    readNullableDouble(json, "pc")
             );
 
+        } catch (RestClientResponseException e) {
+            System.out.println("Finnhub quote request forbidden for symbol: " + symbol + " (" + e.getStatusCode() + ")");
+            return new QuoteResponse(symbol, 0,0,0,0,0,0,0);
         } catch (Exception e) {
             e.printStackTrace();
             return new QuoteResponse(symbol, 0,0,0,0,0,0,0);
@@ -256,6 +336,17 @@ public class FinnhubService {
             e.printStackTrace();
             return List.of();
         }
+    }
+
+    private double readNullableDouble(org.json.JSONObject json, String key) {
+        if (json.isNull(key)) {
+            return 0.0;
+        }
+        return json.optDouble(key, 0.0);
+    }
+
+    private Double readNullableBoxedDouble(org.json.JSONObject json, String key) {
+        return json.isNull(key) ? null : json.optDouble(key);
     }
 
 }

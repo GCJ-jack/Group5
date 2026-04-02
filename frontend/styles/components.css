@@ -514,11 +514,15 @@
 }
 
 .holding-row--positive {
-  background: rgba(203, 58, 49, 0.08);
+  background: rgba(10, 127, 85, 0.08);
 }
 
 .holding-row--negative {
-  background: rgba(10, 127, 85, 0.08);
+  background: rgba(203, 58, 49, 0.08);
+}
+
+.following-row--neutral {
+  background: rgba(148, 163, 184, 0.08);
 }
 
 .holding-row__identity {
@@ -561,6 +565,12 @@
   text-align: right;
 }
 
+.card__subtle {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
 .holding-change-pill {
   padding: 0.35rem 0.7rem;
   border-radius: 999px;
@@ -568,13 +578,47 @@
 }
 
 .is-positive {
+  color: #0a7f55;
+  background: rgba(10, 127, 85, 0.14);
+}
+
+.is-negative {
   color: #cb3a31;
   background: rgba(203, 58, 49, 0.14);
 }
 
-.is-negative {
-  color: #0a7f55;
-  background: rgba(10, 127, 85, 0.14);
+.following-row {
+  align-items: flex-start;
+}
+
+.following-row__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.following-type-pill {
+  padding: 0.22rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(226, 232, 240, 0.85);
+  color: var(--primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.following-state {
+  padding: 1rem;
+  border-radius: 1.25rem;
+  background: rgba(248, 250, 252, 0.92);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.following-row__fallback {
+  color: var(--muted);
 }
 
 .text-button,

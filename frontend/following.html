@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Financial Atelier | Following</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles/variables.css" />
+    <link rel="stylesheet" href="./styles/reset.css" />
+    <link rel="stylesheet" href="./styles/layout.css" />
+    <link rel="stylesheet" href="./styles/components.css" />
+    <link rel="stylesheet" href="./styles/main.css" />
+    <link rel="stylesheet" href="./styles/following.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="top-nav">
+        <div class="top-nav__brand-group">
+          <span class="top-nav__brand">Financial Atelier</span>
+        </div>
+
+        <div class="top-nav__actions">
+          <a href="./dashboard.html" class="button button--surface">
+            <span class="material-symbols-outlined">arrow_back</span>
+            <span>Back to Dashboard</span>
+          </a>
+        </div>
+      </header>
+
+      <aside class="side-nav">
+        <div class="side-nav__brand-card">
+          <div class="side-nav__brand-icon">
+            <span class="material-symbols-outlined">architecture</span>
+          </div>
+          <div>
+            <h2>The Atelier</h2>
+            <p>Wealth Management</p>
+          </div>
+        </div>
+
+        <nav class="side-nav__menu" aria-label="Primary">
+          <a href="./dashboard.html" class="side-nav__link">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span>Dashboard</span>
+          </a>
+          <a href="./portfolio2.html" class="side-nav__link">
+            <span class="material-symbols-outlined">pie_chart</span>
+            <span>Portfolio</span>
+          </a>
+          <a href="./following.html" class="side-nav__link side-nav__link--active">
+            <span class="material-symbols-outlined">bookmark</span>
+            <span>Following</span>
+          </a>
+          <a href="#" class="side-nav__link">
+            <span class="material-symbols-outlined">smart_toy</span>
+            <span>AI Assistance</span>
+          </a>
+          <a href="#" class="side-nav__link">
+            <span class="material-symbols-outlined">settings</span>
+            <span>Settings</span>
+          </a>
+        </nav>
+      </aside>
+
+      <main class="main-content">
+        <div class="page-wrap following-page">
+          <section class="following-hero card">
+            <div>
+              <p class="eyebrow">Following Workspace</p>
+              <h1>Browse saved assets and inspect each one without leaving the page.</h1>
+              <p class="following-hero__description">
+                Pick any saved stock or crypto from the right-side list to load a live quote
+                snapshot and recent price action instantly.
+              </p>
+            </div>
+
+            <div class="following-summary">
+              <span class="following-summary__label">Saved Symbols</span>
+              <p id="following-count" class="following-summary__value">0</p>
+              <strong id="following-last-updated" class="following-summary__time">Waiting for first sync...</strong>
+            </div>
+          </section>
+
+          <section class="card following-workspace">
+            <aside class="following-sidebar">
+              <div class="following-sidebar__header">
+                <div>
+                  <h3>Following</h3>
+                  <p class="card__subtle">Your saved stocks and crypto.</p>
+                </div>
+              </div>
+
+              <p id="following-sidebar-state" class="following-sidebar-state" hidden></p>
+              <div id="following-list-full" class="following-list-full"></div>
+            </aside>
+
+            <section class="following-detail">
+              <div id="following-detail-content" class="following-detail-content">
+                <div class="following-detail__hero">
+                  <div class="following-detail__identity">
+                    <img id="following-detail-logo" class="following-detail__logo" alt="" hidden />
+                    <p id="following-detail-type" class="eyebrow">STOCK</p>
+                    <h2 id="following-detail-symbol">--</h2>
+                    <p id="following-detail-name" class="following-detail__name">Select a symbol to load details.</p>
+                    <p id="following-detail-summary" class="following-detail__summary"></p>
+
+                    <div class="following-info-grid">
+                      <article class="following-info-card">
+                        <span>Asset Type</span>
+                        <strong id="following-info-type">STOCK</strong>
+                        <p>Saved asset classification from your following list.</p>
+                      </article>
+
+                      <article class="following-info-card">
+                        <span>Saved On</span>
+                        <strong id="following-info-created-at">Recently followed</strong>
+                        <p>Shows when this asset was added to your following workspace.</p>
+                      </article>
+
+                      <article class="following-info-card">
+                        <span>Exchange</span>
+                        <strong id="following-info-exchange">--</strong>
+                        <p>Listed exchange from the company profile endpoint.</p>
+                      </article>
+
+                      <article class="following-info-card">
+                        <span>Industry</span>
+                        <strong id="following-info-industry">--</strong>
+                        <p>Finnhub industry classification for the selected company.</p>
+                      </article>
+
+                      <article class="following-info-card">
+                        <span>Country / Currency</span>
+                        <strong id="following-info-region">--</strong>
+                        <p>Headquarter country and filing currency.</p>
+                      </article>
+
+                      <article class="following-info-card">
+                        <span>IPO Date</span>
+                        <strong id="following-info-ipo">--</strong>
+                        <p>Initial public offering date when available.</p>
+                      </article>
+                    </div>
+                  </div>
+
+                </div>
+
+                <div class="following-quote-grid">
+                  <div class="stock-stat-card">
+                    <span>Current Price</span>
+                    <strong id="following-quote-price">$0.00</strong>
+                  </div>
+                  <div class="stock-stat-card">
+                    <span>Daily Change</span>
+                    <strong id="following-quote-change">0.00%</strong>
+                  </div>
+                  <div class="stock-stat-card">
+                    <span>Open / Prev Close</span>
+                    <strong id="following-quote-open">$0.00 / $0.00</strong>
+                  </div>
+                </div>
+
+                <article class="following-chart-card">
+                  <div class="card__header">
+                    <div>
+                      <h3>Price Performance</h3>
+                      <p id="following-chart-description" class="card__subtle">
+                        Daily candlestick chart for the selected symbol.
+                      </p>
+                    </div>
+
+                    <div class="following-chart-card__controls">
+                      <div class="segmented-control segmented-control--compact" id="following-range-filters"></div>
+                      <div class="segmented-control segmented-control--compact" id="following-interval-filters"></div>
+                    </div>
+                  </div>
+
+                  <div class="following-chart-shell">
+                    <div id="following-chart-state" class="stock-chart-state">Loading price chart...</div>
+                    <div id="following-candle-chart" class="stock-chart-shell__chart"></div>
+                  </div>
+                </article>
+
+                <article class="following-news-card">
+                  <div class="card__header">
+                    <div>
+                      <h3>Company News</h3>
+                      <p class="card__subtle">Latest headlines tied to the selected symbol.</p>
+                    </div>
+                  </div>
+
+                  <div id="following-news-state" class="following-news-state">Loading company news...</div>
+                  <div id="following-news-list" class="following-news-list"></div>
+                </article>
+              </div>
+            </section>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="./scripts/following.js"></script>
+  </body>
+</html>

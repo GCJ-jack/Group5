@@ -5,6 +5,8 @@ const companyElement = document.getElementById("detail-company");
 const quotePriceElement = document.getElementById("quote-price");
 const quoteChangeElement = document.getElementById("quote-change");
 const quoteOpenElement = document.getElementById("quote-open");
+const followCompanyButton = document.getElementById("follow-company-button");
+const followCompanyState = document.getElementById("follow-company-state");
 const candleRangeFiltersRoot = document.getElementById("candle-range-filters");
 const candleIntervalFiltersRoot = document.getElementById("candle-interval-filters");
 const candleChartRoot = document.getElementById("stock-candle-chart");
@@ -21,6 +23,7 @@ const symbol = (urlParams.get("symbol") || "").trim().toUpperCase();
 let activeCandleRange = "1mo";
 let activeCandleInterval = "DAILY";
 let candleChart = null;
+let currentCompanyName = "";
 
 function formatCurrency(value) {
   return new Intl.NumberFormat("en-US", {
@@ -55,6 +58,22 @@ function formatIntervalLabel(interval) {
   return interval.charAt(0) + interval.slice(1).toLowerCase();
 }
 
+function inferFollowingType(value) {
+  const normalized = String(value || "").trim().toUpperCase();
+  const cryptoPairs = ["USD", "USDT", "USDC", "BTC", "ETH"];
+  const cryptoSymbols = ["BTC", "ETH", "SOL", "XRP", "DOGE", "ADA", "BNB"];
+
+  if (cryptoSymbols.includes(normalized)) {
+    return "CRYPTO";
+  }
+
+  if (cryptoPairs.some((suffix) => normalized.endsWith(suffix))) {
+    return "CRYPTO";
+  }
+
+  return "STOCK";
+}
+
 function updateChartDescription() {
   chartDescriptionElement.textContent = `${formatIntervalLabel(activeCandleInterval)} candlestick chart for ${activeCandleRange} of trading history.`;
 }
@@ -63,6 +82,19 @@ function setChartState(message, isVisible = true) {
   candleChartState.textContent = message;
   candleChartState.hidden = !isVisible;
   candleChartRoot.hidden = isVisible;
+}
+
+function setFollowState(message, tone = "neutral") {
+  if (!message) {
+    followCompanyState.hidden = true;
+    followCompanyState.textContent = "";
+    followCompanyState.className = "stock-follow-state";
+    return;
+  }
+
+  followCompanyState.hidden = false;
+  followCompanyState.textContent = message;
+  followCompanyState.className = `stock-follow-state stock-follow-state--${tone}`;
 }
 
 async function readErrorMessage(response, fallbackMessage) {
@@ -178,14 +210,46 @@ async function loadQuote() {
 
   const [quote] = await response.json();
   const percentChange = Number(quote?.percentChange || 0);
+  currentCompanyName = quote?.name || symbol;
 
   symbolElement.textContent = symbol;
-  companyElement.textContent = `${quote?.name || symbol} live market snapshot`;
+  companyElement.textContent = `${currentCompanyName} live market snapshot`;
   quotePriceElement.textContent = formatCurrency(quote?.currentPrice);
   quoteChangeElement.textContent = formatPercent(percentChange);
   quoteChangeElement.classList.toggle("stock-quote-positive", percentChange >= 0);
   quoteChangeElement.classList.toggle("stock-quote-negative", percentChange < 0);
   quoteOpenElement.textContent = `${formatCurrency(quote?.open)} / ${formatCurrency(quote?.previousClose)}`;
+}
+
+async function followCompany() {
+  followCompanyButton.disabled = true;
+  setFollowState("Adding company to following list...");
+
+  try {
+    const response = await fetch(`${API}/api/following`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        symbol,
+        type: inferFollowingType(symbol),
+      }),
+    });
+
+    if (!response.ok) {
+      const message = await readErrorMessage(response, "Failed to add company to following list.");
+      setFollowState(message, "error");
+      return;
+    }
+
+    setFollowState("Added to following list.", "success");
+  } catch (error) {
+    console.error(error);
+    setFollowState("Failed to add company to following list.", "error");
+  } finally {
+    followCompanyButton.disabled = false;
+  }
 }
 
 async function loadCandles(range) {
@@ -309,5 +373,7 @@ candleIntervalFiltersRoot.addEventListener("click", async (event) => {
     console.error(error);
   }
 });
+
+followCompanyButton.addEventListener("click", followCompany);
 
 initializePage();

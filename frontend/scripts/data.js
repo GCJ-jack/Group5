@@ -77,6 +77,9 @@ async function loadTopGainers() {
     );
 
     const list = document.getElementById("holdings-list");
+    if (!list) {
+      return;
+    }
     list.innerHTML = "";
 
     if (!uniqueHoldings.length) {
@@ -143,5 +146,145 @@ async function loadTopGainers() {
     console.error("加载涨幅排行失败:", error);
   }
 }
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (character) => {
+    const entities = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    };
+
+    return entities[character];
+  });
+}
+
+function formatFollowingDate(value) {
+  if (!value) {
+    return "Recently followed";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "Recently followed";
+  }
+
+  return `Followed on ${date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })}`;
+}
+
+function formatQuoteCurrency(value) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 2,
+  }).format(Number(value ?? 0));
+}
+
+function findQuoteForSymbol(quotes, symbol) {
+  const normalizedSymbol = String(symbol || "").trim().toUpperCase();
+  return quotes.find((quote) => {
+    const candidates = [quote?.symbol, quote?.name, quote?.ticker];
+    return candidates.some((candidate) => String(candidate || "").trim().toUpperCase() === normalizedSymbol);
+  });
+}
+
+async function loadFollowingList() {
+  const list = document.getElementById("following-list");
+  if (!list) {
+    return;
+  }
+
+  try {
+    const response = await fetch("http://localhost:8080/api/following");
+    if (!response.ok) {
+      throw new Error("Failed to load following list");
+    }
+
+    const following = await response.json();
+    list.innerHTML = "";
+
+    if (!following.length) {
+      list.innerHTML = `
+        <div class="following-state">
+          Add companies from the stock detail page to start your following list.
+        </div>
+      `;
+      return;
+    }
+
+    const query = new URLSearchParams();
+    following.forEach((item) => {
+      query.append("symbols", item.symbol);
+    });
+
+    let quotes = [];
+    try {
+      const quoteResponse = await fetch(`http://localhost:8080/api/market/trending?${query.toString()}`);
+      if (!quoteResponse.ok) {
+        throw new Error("Failed to load following quotes");
+      }
+      quotes = await quoteResponse.json();
+    } catch (error) {
+      console.error("加载关注列表行情失败:", error);
+    }
+
+    list.innerHTML = following
+      .map((item) => {
+        const symbol = item.symbol;
+        const displayName = item.name || symbol;
+        const quote = findQuoteForSymbol(quotes, symbol);
+        const hasQuote = Boolean(quote);
+        const percentChange = Number(quote?.percentChange ?? 0);
+        const change = Number(quote?.change ?? 0);
+        const isPositive = percentChange >= 0;
+        const priceMarkup = quote
+          ? `
+            <p>${formatQuoteCurrency(quote.currentPrice)}</p>
+            <span class="holding-change-pill ${isPositive ? "is-positive" : "is-negative"}">
+              ${isPositive ? "+" : ""}${change.toFixed(2)} / ${isPositive ? "+" : ""}${percentChange.toFixed(2)}%
+            </span>
+          `
+          : `
+            <p>Quote unavailable</p>
+            <span class="following-row__fallback">Live quote unavailable right now.</span>
+          `;
+
+        return `
+          <div class="holding-row ${hasQuote ? (isPositive ? "holding-row--positive" : "holding-row--negative") : "following-row--neutral"} following-row">
+            <div class="holding-row__identity">
+              <div class="holding-row__symbol">${escapeHtml(symbol)}</div>
+              <div>
+                <p>${escapeHtml(displayName)}</p>
+                <span class="following-row__meta">
+                  <span class="following-type-pill">${escapeHtml(item.type || "STOCK")}</span>
+                  <span>${escapeHtml(formatFollowingDate(item.createdAt))}</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="holding-row__metrics">
+              ${priceMarkup}
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+  } catch (error) {
+    console.error("加载关注列表失败:", error);
+    list.innerHTML = `
+      <div class="following-state">
+        Failed to load following list.
+      </div>
+    `;
+  }
+}
+
 document.addEventListener("DOMContentLoaded", loadNews);
 document.addEventListener("DOMContentLoaded", loadTopGainers);
+document.addEventListener("DOMContentLoaded", loadFollowingList);
