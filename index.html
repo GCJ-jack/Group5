@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Atelier - AI Investment Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>The Atelier</h2>
+            <p>Wealth Management AI Assistant</p>
+        </div>
+
+        <button class="new-chat-btn" onclick="startNewChat()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            New Chat
+        </button>
+
+        <div class="chat-history-item active" data-date-placeholder>
+            Current Chat - {{DATE}}
+        </div>
+
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="chat-header">
+            <div class="chat-header-title">
+                <h3>AI Investment Advisor</h3>
+                <p>Providing intelligent analysis based on your portfolio</p>
+            </div>
+            <div class="chat-header-actions">
+                <button class="export-btn" onclick="exportChat()" title="Export chat history">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Export Chat
+                </button>
+            </div>
+        </div>
+
+        <!-- Message Container -->
+        <div class="messages-container" id="messagesContainer">
+            <div class="message assistant">
+                <div class="message-avatar">AI</div>
+                <div class="message-content">
+                    <div class="message-header">The Atelier AI</div>
+                    <div class="message-text">
+                        <p>Hello! I am your intelligent investment advisor. I can help you with:</p>
+                        <ul>
+                            <li>Analyze the performance and risks of your current portfolio</li>
+                            <li>Provide asset allocation optimization suggestions</li>
+                            <li>Interpret market trends and industry insights</li>
+                            <li>Evaluate the investment value of stocks and funds</li>
+                        </ul>
+                        <p>You can ask questions directly, or click the "Analyze Recent Investments" button to get the latest portfolio insights.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-container">
+            <div class="input-wrapper">
+                <div class="input-box">
+                <textarea
+                        id="messageInput"
+                        class="input-field"
+                        placeholder="Enter your question, or click the button on the right to analyze investments..."
+                        rows="1"
+                        oninput="autoResize(this)"
+                        onkeydown="handleKeyDown(event)"
+                ></textarea>
+                    <div class="input-actions">
+                        <button class="send-btn" onclick="sendMessage()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="input-hint">AI-generated content is for reference only and does not constitute investment advice</div>
+            </div>
+        </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

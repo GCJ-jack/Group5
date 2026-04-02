@@ -1,0 +1,15 @@
+打开terminal
+
+输入指令 ollama pull gpt-oss:120b-cloud 链接LLM
+
+输入指令 ollama run gpt-oss:120b-cloud 来运行LLM
+
+输入指令 /bye 退出在terminal中与LLM的对话
+
+cd至server folder
+
+输入npm start以启动server
+
+打开网页开始正常使用
+
+若想关闭服务器，在terminal中输入ctrl+C来退出
