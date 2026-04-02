@@ -372,6 +372,11 @@
   color: var(--success-ink);
 }
 
+.pill--danger {
+  background: rgba(254, 226, 226, 0.9);
+  color: #b42318;
+}
+
 .hero-section__subtle,
 .section-heading p,
 .news-card p,

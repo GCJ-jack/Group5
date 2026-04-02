@@ -5,6 +5,7 @@ import com.group5.backend.model.PortfolioResponse;
 import com.group5.backend.model.SellRequest;
 import com.group5.backend.model.dto.PortfolioHistoryResponse;
 import com.group5.backend.model.dto.PortfolioGainerResponse;
+import com.group5.backend.model.dto.PortfolioPerformanceResponse;
 import com.group5.backend.service.PortfolioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -47,6 +48,14 @@ public class PortfolioController {
     @GetMapping("/portfolio/history")
     public List<PortfolioHistoryResponse> history() {
         return service.getHistory();
+    }
+
+    @GetMapping("/portfolio/performance")
+    public PortfolioPerformanceResponse performance(
+            @RequestParam(defaultValue = "1mo") String range,
+            @RequestParam(defaultValue = "DAILY") String interval
+    ) {
+        return service.getPerformance(range, interval);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

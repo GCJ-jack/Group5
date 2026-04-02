@@ -93,6 +93,48 @@
   padding: 1.5rem;
 }
 
+.history-toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.history-search {
+  width: min(100%, 24rem);
+}
+
+.history-search .search-field__input {
+  width: 100%;
+}
+
+.history-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 11rem;
+}
+
+.history-filter span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.history-filter select {
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 999px;
+  background: rgba(248, 250, 252, 0.92);
+  padding: 0.75rem 0.95rem;
+  color: var(--ink);
+  font-size: 0.9rem;
+  outline: none;
+}
+
 .history-table-card__header {
   align-items: start;
 }
@@ -177,6 +219,34 @@
   text-transform: uppercase;
 }
 
+.history-trade-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.history-trade-pill--buy {
+  background: rgba(220, 252, 231, 0.92);
+  color: #166534;
+}
+
+.history-trade-pill--sell {
+  background: rgba(254, 226, 226, 0.92);
+  color: #b42318;
+}
+
+.history-trade-pill--unknown,
+.history-trade-pill--unavailable {
+  background: rgba(226, 232, 240, 0.9);
+  color: #475467;
+}
+
 .history-empty {
   text-align: center;
   color: var(--muted);
@@ -190,5 +260,14 @@
 
   .history-stats {
     grid-template-columns: 1fr;
+  }
+
+  .history-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .history-search {
+    width: 100%;
   }
 }

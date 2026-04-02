@@ -78,7 +78,7 @@
               <p class="eyebrow">Order History</p>
               <h1>Review recorded portfolio activity in one timeline.</h1>
               <p class="history-hero__description">
-                Track executed positions, scan total quantity and cost, and inspect each order entry
+                Track executed positions, scan buy and sell activity, and inspect each order entry
                 in a unified ledger view.
               </p>
             </div>
@@ -95,7 +95,7 @@
               <strong id="history-total-count">0</strong>
             </article>
             <article class="history-stat-card">
-              <span>Total Quantity</span>
+              <span>Buy / Sell Records</span>
               <strong id="history-quantity-count">0</strong>
             </article>
           </section>
@@ -109,6 +109,32 @@
               <p id="history-state" class="history-state" hidden></p>
             </div>
 
+            <div class="history-toolbar">
+              <label class="search-field history-search" aria-label="Search history">
+                <span class="material-symbols-outlined search-field__icon">search</span>
+                <input
+                  id="history-search-input"
+                  type="text"
+                  placeholder="Search asset name or symbol..."
+                  class="search-field__input"
+                />
+              </label>
+
+              <label class="history-filter" for="history-type-filter">
+                <span>Asset Type</span>
+                <select id="history-type-filter">
+                  <option value="ALL">All Types</option>
+                </select>
+              </label>
+
+              <label class="history-filter" for="history-trade-filter">
+                <span>Trade Type</span>
+                <select id="history-trade-filter">
+                  <option value="ALL">All Trades</option>
+                </select>
+              </label>
+            </div>
+
             <div class="history-table-wrap">
               <table class="history-table">
                 <thead>
@@ -116,8 +142,10 @@
                     <th>Order Time</th>
                     <th>Asset Name</th>
                     <th>Symbol</th>
-                    <th>Type</th>
-                    <th>Quantity</th>
+                    <th>Trade Type</th>
+                    <th>Asset Type</th>
+                    <th>Trade Qty</th>
+                    <th>Price</th>
                   </tr>
                 </thead>
                 <tbody id="history-table-body"></tbody>

@@ -1,5 +1,5 @@
 window.dashboardData = {
-  performanceFilters: ["1D", "1W", "1M", "YTD"],
+  performanceFilters: ["1M", "3M", "6M", "1Y", "MAX"],
 };
 
 const FALLBACK_NEWS_IMAGE =

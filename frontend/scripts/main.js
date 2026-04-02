@@ -1,32 +1,21 @@
 const { performanceFilters } = window.dashboardData;
 
+const API = "http://localhost:8080";
+
+const totalValueElement = document.getElementById("dashboard-total-value");
+const pnlPillElement = document.getElementById("dashboard-pnl-pill");
+const pnlIconElement = document.getElementById("dashboard-pnl-icon");
+const pnlTextElement = document.getElementById("dashboard-pnl-text");
+const costBasisElement = document.getElementById("dashboard-cost-basis");
 const performanceFiltersRoot = document.getElementById("performance-filters");
 const performanceChartRoot = document.getElementById("performance-chart");
 const dashboardSearchInput = document.getElementById("dashboard-search-input");
 const dashboardSearchDropdown = document.getElementById("dashboard-search-dropdown");
 
-const performanceSeriesByFilter = {
-  "1D": {
-    categories: ["09:30", "10:30", "11:30", "12:30", "13:30", "14:30", "15:30", "16:00"],
-    values: [1421000, 1428600, 1425400, 1431800, 1439200, 1434600, 1442800, 1449100],
-  },
-  "1W": {
-    categories: ["Mon", "Tue", "Wed", "Thu", "Fri"],
-    values: [1382400, 1398800, 1415200, 1431100, 1449100],
-  },
-  "1M": {
-    categories: ["Week 1", "Week 2", "Week 3", "Week 4"],
-    values: [1315000, 1352400, 1403600, 1449100],
-  },
-  YTD: {
-    categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-    values: [1180000, 1234000, 1298000, 1365000, 1419000, 1449100],
-  },
-};
-
 let performanceChart = null;
 let activePerformanceFilter = performanceFilters[0];
 let dashboardSearchTimeoutId = null;
+let performanceRequestInFlight = false;
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (character) => {
@@ -67,12 +56,94 @@ function formatCompactCurrency(value) {
   }).format(value);
 }
 
+function formatCurrency(value) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 2,
+  }).format(Number(value ?? 0));
+}
+
+function formatSignedCurrency(value) {
+  const amount = Number(value ?? 0);
+  return `${amount >= 0 ? "+" : "-"}${formatCurrency(Math.abs(amount))}`;
+}
+
+function formatSignedPercent(value) {
+  const amount = Number(value ?? 0);
+  return `${amount >= 0 ? "+" : "-"}${Math.abs(amount).toFixed(2)}%`;
+}
+
+function setPortfolioOverviewState({ totalValue = 0, costBasis = 0, profitLoss = 0, profitLossPercent = 0, isEmpty = false }) {
+  totalValueElement.textContent = formatCurrency(totalValue);
+  costBasisElement.textContent = `Cost basis: ${formatCurrency(costBasis)}`;
+
+  if (isEmpty) {
+    pnlPillElement.classList.add("pill--success");
+    pnlPillElement.classList.remove("pill--danger");
+    pnlIconElement.textContent = "inventory_2";
+    pnlTextElement.textContent = "No holdings yet";
+    costBasisElement.textContent = "Add assets in Portfolio to see live totals";
+    return;
+  }
+
+  const isPositive = profitLoss >= 0;
+  pnlPillElement.classList.toggle("pill--success", isPositive);
+  pnlPillElement.classList.toggle("pill--danger", !isPositive);
+  pnlIconElement.textContent = isPositive ? "trending_up" : "trending_down";
+  pnlTextElement.textContent = `${formatSignedPercent(profitLossPercent)} (${formatSignedCurrency(profitLoss)}) Unrealized`;
+}
+
+async function loadPortfolioOverview() {
+  try {
+    const response = await fetch(`${API}/portfolio`);
+    if (!response.ok) {
+      throw new Error("Failed to load portfolio overview");
+    }
+
+    const items = await response.json();
+    if (!items.length) {
+      setPortfolioOverviewState({ isEmpty: true });
+      return;
+    }
+
+    const totals = items.reduce(
+      (accumulator, item) => {
+        const quantity = Number(item.quantity || 0);
+        const price = Number(item.price || 0);
+        const buyPrice = Number(item.buyPrice || 0);
+
+        accumulator.totalValue += Number(item.totalValue || quantity * price);
+        accumulator.costBasis += quantity * buyPrice;
+        return accumulator;
+      },
+      { totalValue: 0, costBasis: 0 },
+    );
+
+    const profitLoss = totals.totalValue - totals.costBasis;
+    const profitLossPercent = totals.costBasis > 0 ? (profitLoss / totals.costBasis) * 100 : 0;
+
+    setPortfolioOverviewState({
+      totalValue: totals.totalValue,
+      costBasis: totals.costBasis,
+      profitLoss,
+      profitLossPercent,
+    });
+  } catch (error) {
+    console.error(error);
+    totalValueElement.textContent = "$0.00";
+    pnlPillElement.classList.remove("pill--danger");
+    pnlPillElement.classList.add("pill--success");
+    pnlIconElement.textContent = "error";
+    pnlTextElement.textContent = "Failed to load portfolio overview";
+    costBasisElement.textContent = "Cost basis unavailable";
+  }
+}
+
 function createPerformanceChart() {
   if (!performanceChartRoot || typeof ApexCharts === "undefined") {
     return;
   }
-
-  const initialSeries = performanceSeriesByFilter[activePerformanceFilter];
 
   performanceChart = new ApexCharts(performanceChartRoot, {
     chart: {
@@ -83,14 +154,19 @@ function createPerformanceChart() {
       sparkline: { enabled: false },
       fontFamily: "Inter, sans-serif",
     },
-    series: [
-      {
-        name: "Portfolio Value",
-        data: initialSeries.values,
+    series: [{ name: "Portfolio Value", data: [] }],
+    noData: {
+      text: "Loading portfolio performance...",
+      align: "center",
+      verticalAlign: "middle",
+      style: {
+        color: "#667085",
+        fontSize: "14px",
+        fontFamily: "Inter, sans-serif",
       },
-    ],
+    },
     xaxis: {
-      categories: initialSeries.categories,
+      type: "datetime",
       axisBorder: { show: false },
       axisTicks: { show: false },
       labels: {
@@ -164,7 +240,23 @@ function createPerformanceChart() {
   performanceChart.render();
 }
 
-function updatePerformanceChart(filter) {
+function getPerformanceQuery(filter) {
+  switch (filter) {
+    case "3M":
+      return { range: "3mo", interval: "DAILY" };
+    case "6M":
+      return { range: "6mo", interval: "DAILY" };
+    case "1Y":
+      return { range: "1y", interval: "WEEKLY" };
+    case "MAX":
+      return { range: "max", interval: "MONTHLY" };
+    case "1M":
+    default:
+      return { range: "1mo", interval: "DAILY" };
+  }
+}
+
+async function updatePerformanceChart(filter) {
   activePerformanceFilter = filter;
 
   performanceFiltersRoot.querySelectorAll("[data-filter]").forEach((button) => {
@@ -175,18 +267,52 @@ function updatePerformanceChart(filter) {
     return;
   }
 
-  const nextSeries = performanceSeriesByFilter[filter];
-  performanceChart.updateOptions({
-    xaxis: {
-      categories: nextSeries.categories,
-    },
-  });
-  performanceChart.updateSeries([
-    {
-      name: "Portfolio Value",
-      data: nextSeries.values,
-    },
-  ]);
+  if (performanceRequestInFlight) {
+    return;
+  }
+
+  performanceRequestInFlight = true;
+
+  try {
+    const { range, interval } = getPerformanceQuery(filter);
+    const response = await fetch(
+      `${API}/portfolio/performance?range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}`,
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      const detail = errorText ? `: ${errorText}` : "";
+      throw new Error(`Failed to load performance data${detail}`);
+    }
+
+    const payload = await response.json();
+    const seriesData = (payload.points || []).map((point) => ({
+      x: new Date(point.timestamp),
+      y: Number(point.portfolioValue || 0),
+    }));
+
+    performanceChart.updateOptions({
+      noData: {
+        text: "No portfolio performance data available.",
+      },
+    });
+    performanceChart.updateSeries([
+      {
+        name: "Portfolio Value",
+        data: seriesData,
+      },
+    ]);
+  } catch (error) {
+    console.error(error);
+    performanceChart.updateSeries([{ name: "Portfolio Value", data: [] }]);
+    performanceChart.updateOptions({
+      noData: {
+        text: "Failed to load portfolio performance.",
+      },
+    });
+  } finally {
+    performanceRequestInFlight = false;
+  }
 }
 
 function hideDashboardSearchDropdown() {
@@ -258,14 +384,16 @@ function scheduleDashboardSearch(keyword) {
 
 renderPerformanceFilters();
 createPerformanceChart();
+loadPortfolioOverview();
+updatePerformanceChart(activePerformanceFilter);
 
-performanceFiltersRoot.addEventListener("click", (event) => {
+performanceFiltersRoot.addEventListener("click", async (event) => {
   const button = event.target.closest("[data-filter]");
   if (!button) {
     return;
   }
 
-  updatePerformanceChart(button.dataset.filter);
+  await updatePerformanceChart(button.dataset.filter);
 });
 
 dashboardSearchInput.addEventListener("input", (event) => {
